@@ -1,3 +1,9 @@
+# Local configuration (never ship secrets in a Flutter app)
+.env
+.env.*
+!.env.example
+config/*.local.json
+
 # Miscellaneous
 *.class
 *.log
@@ -27,6 +33,7 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+lib/app/l10n/generated/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
