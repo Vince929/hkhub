@@ -9,7 +9,7 @@ import '../../../app/theme/app_theme.dart';
 import '../data/home_tools.dart';
 
 // Add an ID only when its native page actually exists. Unknown IDs are not executable.
-const nativeToolRoutes = <String, String>{'education': '/education'};
+const nativeToolRoutes = <String, String>{'education': '/education', 'commute': '/commute'};
 
 bool supportsNativeTool(HomeTool tool) => nativeToolRoutes.containsKey(tool.featureId);
 
