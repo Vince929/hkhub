@@ -15,18 +15,21 @@ class HkFormInput extends FormField<String> {
           Semantics(label: label, child: TDInput(
             controller: controller, readOnly: !enabled, needClear: enabled && maxLines == 1,
             maxLength: maxLength, maxLines: maxLines, showBottomDivider: false,
+            clearIconSize: 20,
             inputType: numeric ? const TextInputType.numberWithOptions(decimal: true)
               : maxLines > 1 ? TextInputType.multiline : TextInputType.text,
             inputAction: maxLines == 1 ? TextInputAction.next : TextInputAction.newline,
             cursorColor: theme.colorScheme.primary,
-            textStyle: TextStyle(fontSize: 15, height: 1.5,
+            textStyle: TextStyle(fontSize: 15, height: 1.4,
               color: enabled ? theme.colorScheme.onSurface : theme.disabledColor),
             inputDecoration: InputDecoration(
-              hintText: hint, hintMaxLines: 2,
+              hintText: hint, hintMaxLines: maxLines, isDense: true,
+              constraints: const BoxConstraints(minHeight: 56),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               border: InputBorder.none, enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none, filled: false, counterText: '',
-              hintStyle: theme.inputDecorationTheme.hintStyle,
+              hintStyle: (theme.inputDecorationTheme.hintStyle ?? TextStyle(color: theme.hintColor))
+                .copyWith(fontSize: 15, height: 1.4),
             ),
             leftIcon: icon == null ? null : Icon(icon, size: 20, color: theme.hintColor),
             decoration: BoxDecoration(
