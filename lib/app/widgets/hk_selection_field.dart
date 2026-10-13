@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
-/// A compact inline select: a rounded filled field that opens a menu sized to
-/// the field, matching the surrounding inputs without a full-width panel.
+/// A themed TDesign selector with localized actions and no text-field focus.
 class HkSelectionField extends StatefulWidget {
   const HkSelectionField({super.key, required this.label, required this.value,
     required this.items, required this.onChanged, this.enabled = true});
@@ -17,79 +17,67 @@ class HkSelectionField extends StatefulWidget {
 }
 
 class _HkSelectionFieldState extends State<HkSelectionField> {
-  final _menu = MenuController();
+  final _focusNode = FocusNode(debugLabel: 'selection-field');
+  bool _opening = false;
 
-  void _toggle() {
-    if (_menu.isOpen) {
-      _menu.close();
-      return;
-    }
-    // Drop any text-field focus so closing the menu cannot restore it and
-    // raise the software keyboard.
+  Future<void> _open() async {
+    if (!widget.enabled || _opening || widget.items.isEmpty) return;
+    _opening = true;
+    // Drop text-field focus so dismissing the sheet cannot hand focus back to
+    // an input and raise the software keyboard.
     FocusManager.instance.primaryFocus?.unfocus();
-    _menu.open();
+    final entries = widget.items.entries.toList();
+    final selectedIndex = entries.indexWhere((entry) => entry.key == widget.value);
+    final material = MaterialLocalizations.of(context);
+    try {
+      final next = await showModalBottomSheet<String>(
+        context: context, backgroundColor: Colors.transparent,
+        isScrollControlled: true, useSafeArea: true, requestFocus: false,
+        builder: (sheetContext) => TDMultiPicker(
+          title: widget.label, topRadius: 24,
+          data: [entries.map((entry) => entry.value).toList()],
+          initialIndexes: [selectedIndex < 0 ? 0 : selectedIndex],
+          leftText: material.cancelButtonLabel, rightText: material.okButtonLabel,
+          onCancel: (_) => Navigator.of(sheetContext).pop(),
+          onConfirm: (indexes) => Navigator.of(sheetContext).pop(entries[indexes.first as int].key),
+        ),
+      );
+      if (!mounted) return;
+      _focusNode.requestFocus();
+      if (next != null && widget.enabled && widget.items.containsKey(next) && next != widget.value) {
+        widget.onChanged(next);
+      }
+    } finally {
+      _opening = false;
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final enabled = widget.enabled && widget.items.isNotEmpty;
-    final selected = widget.items[widget.value] ?? '';
-    return Semantics(
-      label: widget.label, value: selected, button: true, enabled: enabled,
-      child: LayoutBuilder(builder: (context, constraints) => MenuAnchor(
-        controller: _menu, consumeOutsideTap: true,
-        style: MenuStyle(
-          padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(vertical: 6)),
-          backgroundColor: WidgetStatePropertyAll(theme.colorScheme.surface),
-          elevation: const WidgetStatePropertyAll(4),
-          shape: WidgetStatePropertyAll(RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: theme.dividerColor))),
-        ),
-        menuChildren: [SizedBox(width: constraints.maxWidth,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            for (final entry in widget.items.entries) _option(theme, entry),
-          ]))],
-        builder: (context, controller, child) => InkWell(
-          onTap: enabled ? _toggle : null,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            height: 56, padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16)),
-            child: Row(children: [
-              Expanded(child: Text(selected, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 15,
-                  color: enabled ? theme.colorScheme.onSurface : theme.disabledColor))),
-              Icon(Icons.keyboard_arrow_down_rounded, size: 22,
-                color: enabled ? theme.hintColor : theme.disabledColor),
-            ]),
-          ),
-        ),
-      )),
-    );
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
   }
 
-  Widget _option(ThemeData theme, MapEntry<String, String> entry) {
-    final isSelected = entry.key == widget.value;
-    return InkWell(
-      onTap: () {
-        _menu.close();
-        if (!isSelected) widget.onChanged(entry.key);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(children: [
-          Expanded(child: Text(entry.value, maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 15,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface))),
-          if (isSelected)
-            Icon(Icons.check_rounded, size: 18, color: theme.colorScheme.primary),
-        ]),
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: widget.label, value: widget.items[widget.value] ?? '',
+    button: true, enabled: widget.enabled,
+    child: Focus(
+      focusNode: _focusNode, canRequestFocus: widget.enabled,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: TDCell(
+          titleWidget: Text(widget.items[widget.value] ?? '',
+            style: TextStyle(fontSize: 15, color: widget.enabled
+              ? Theme.of(context).colorScheme.onSurface : Theme.of(context).disabledColor)),
+          style: TDCellStyle.cellStyle(context)
+            ..backgroundColor = Theme.of(context).inputDecorationTheme.fillColor
+              ?? Theme.of(context).colorScheme.surface
+            ..rightIconColor = Theme.of(context).hintColor,
+          rightIcon: TDIcons.chevron_down, disabled: !widget.enabled,
+          onClick: (_) => _open(),
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
