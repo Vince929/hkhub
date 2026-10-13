@@ -16,6 +16,16 @@ class EducationStorage {
 
   final SharedPreferences preferences;
   final String _key;
+  // Increment the consent version when the privacy notice materially changes.
+  String get _consentKey => '$_key.consent.v1';
+
+  bool loadConsent() => preferences.getBool(_consentKey) ?? false;
+
+  Future<void> saveConsent(bool consent) async {
+    if (!await preferences.setBool(_consentKey, consent)) {
+      throw StateError('Could not save education consent');
+    }
+  }
 
   EducationRecord load() {
     final saved = preferences.getString(_key);
@@ -36,7 +46,7 @@ class EducationStorage {
     }
   }
 
-  // Only accepted input fields are stored; consent must be given again in the UI.
+  // Consent is stored separately from applicant data and cached reports.
   Map<String, dynamic> _sanitize(Map<String, dynamic> form) {
     final result = <String, dynamic>{};
     const textFields = {'institution', 'major', 'direction', 'experience', 'preferences'};
@@ -69,5 +79,6 @@ class EducationStorage {
 
   Future<void> clear() async {
     if (!await preferences.remove(_key)) throw StateError('Could not clear education record');
+    if (!await preferences.remove(_consentKey)) throw StateError('Could not clear education consent');
   }
 }

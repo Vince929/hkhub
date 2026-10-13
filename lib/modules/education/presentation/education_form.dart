@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../app/widgets/hk_form_input.dart';
+import '../../../app/widgets/hk_selection_field.dart';
 import 'education_strings.dart';
 
 class EducationForm extends StatefulWidget {
   const EducationForm({super.key, required this.initialValues, required this.busy,
-    required this.onSubmit, required this.onChanged, this.onCancel});
+    required this.onSubmit, required this.onChanged, this.onCancel,
+    this.initialConsent = false, this.onConsentChanged});
 
   final Map<String, dynamic> initialValues;
   final bool busy;
   final void Function(Map<String, dynamic>) onSubmit;
   final void Function(Map<String, dynamic>) onChanged;
   final VoidCallback? onCancel;
+  final bool initialConsent;
+  final ValueChanged<bool>? onConsentChanged;
 
   @override
   State<EducationForm> createState() => _EducationFormState();
@@ -30,6 +36,7 @@ class _EducationFormState extends State<EducationForm> {
   void initState() {
     super.initState();
     final values = widget.initialValues;
+    _consent = widget.initialConsent;
     _scale = values['grade_scale'] as String? ?? '100';
     _tier = values['institution_tier'] as String? ?? 'unknown';
     _test = values['language_test'] as String? ?? 'not_provided';
@@ -186,22 +193,35 @@ class _EducationFormState extends State<EducationForm> {
         ]),
       ),
       const SizedBox(height: 10),
-      CheckboxListTile(
-        value: _consent, contentPadding: EdgeInsets.zero,
-        controlAffinity: ListTileControlAffinity.leading,
-        onChanged: widget.busy ? null : (value) => setState(() {
-          _consent = value ?? false; _consentError = false;
-        }),
-        title: Text(strings.consentLabel,
+      TDCheckbox(
+        checked: _consent, enable: !widget.busy, showDivider: false,
+        style: TDCheckboxStyle.square, selectColor: AppTheme.studyBlue,
+        backgroundColor: Colors.transparent, insetSpacing: 0, checkBoxLeftSpace: 0,
+        customSpace: const EdgeInsets.symmetric(vertical: 12),
+        customContentBuilder: (context, checked, content) => Text(strings.consentLabel,
           style: const TextStyle(fontSize: 13, height: 1.5, color: AppTheme.studyInk)),
+        onCheckBoxChanged: (value) {
+          setState(() { _consent = value; _consentError = false; });
+          widget.onConsentChanged?.call(_consent);
+        },
       ),
       if (_consentError) Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(
         strings.consentRequired, style: TextStyle(color: Theme.of(context).colorScheme.error))),
       const SizedBox(height: 8),
-      FilledButton.icon(onPressed: widget.busy ? null : _submit,
-        icon: widget.busy ? const SizedBox(width: 19, height: 19,
-          child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.auto_awesome_rounded, size: 21),
-        label: Text(strings.generate)),
+      TDButton(
+        text: strings.generate, isBlock: true, height: 56, margin: EdgeInsets.zero,
+        size: TDButtonSize.large, theme: TDButtonTheme.primary,
+        disabled: widget.busy, onTap: _submit,
+        style: TDButtonStyle(backgroundColor: AppTheme.studyBlue,
+          textColor: Colors.white, radius: BorderRadius.circular(18)),
+        activeStyle: TDButtonStyle(backgroundColor: TDTheme.of(context).brandClickColor,
+          textColor: Colors.white, radius: BorderRadius.circular(18)),
+        disableStyle: TDButtonStyle(backgroundColor: TDTheme.of(context).brandDisabledColor,
+          textColor: Colors.white, radius: BorderRadius.circular(18)),
+        iconWidget: widget.busy ? const SizedBox(width: 19, height: 19,
+          child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.auto_awesome_rounded, size: 21, color: Colors.white),
+      ),
       if (widget.busy) Container(
         margin: const EdgeInsets.only(top: 14), padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
@@ -256,28 +276,19 @@ class _EducationFormState extends State<EducationForm> {
   Widget _field(String key, String label, {bool isRequired = true, bool numeric = false,
     int max = 120, int lines = 1, String? hint, IconData? icon, String? Function(String?)? validator}) {
     final strings = EducationStrings(Localizations.localeOf(context));
-    return _label(label, TextFormField(
-      controller: _fields[key], enabled: !widget.busy, maxLength: max, maxLines: lines,
-      style: const TextStyle(fontSize: 15, color: AppTheme.studyInk, height: 1.5),
-      keyboardType: numeric ? const TextInputType.numberWithOptions(decimal: true)
-        : lines > 1 ? TextInputType.multiline : TextInputType.text,
-      textInputAction: lines == 1 ? TextInputAction.next : TextInputAction.newline,
-      decoration: InputDecoration(hintText: hint, hintMaxLines: 2,
-        prefixIcon: icon == null ? null : Icon(icon, size: 20, color: AppTheme.studyMuted),
-        counterText: lines > 1 ? null : ''),
+    return _label(label, HkFormInput(
+      key: ValueKey(key), controller: _fields[key]!, label: label,
+      enabled: !widget.busy, maxLength: max, maxLines: lines,
+      numeric: numeric, hint: hint, icon: icon,
       validator: validator ?? (value) =>
           isRequired && (value ?? '').trim().isEmpty ? strings.requiredField : null,
     ));
   }
 
   Widget _choice(String label, String value, Map<String, String> items, ValueChanged<String> changed) {
-    return _label(label, DropdownButtonFormField<String>(
-      key: ValueKey('$label:$value'), initialValue: value, isExpanded: true,
-      borderRadius: BorderRadius.circular(18), dropdownColor: Colors.white,
-      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.studyMuted),
-      style: const TextStyle(fontSize: 15, color: AppTheme.studyInk),
-      items: [for (final entry in items.entries) DropdownMenuItem(value: entry.key, child: Text(entry.value))],
-      onChanged: widget.busy ? null : (next) { if (next != null) changed(next); },
+    return _label(label, HkSelectionField(
+      label: label, value: value, items: items,
+      enabled: !widget.busy, onChanged: changed,
     ));
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 import '../../../app/config/app_config.dart';
 import '../../../app/l10n/generated/app_localizations.dart';
@@ -26,23 +27,23 @@ class _ApiEnvironmentSettingsState extends ConsumerState<ApiEnvironmentSettings>
         const SizedBox(height: 8),
         Text(strings.environmentSwitchDescription),
         const SizedBox(height: 12),
-        for (final environment in apiEnvironments)
-          Semantics(
-            checked: config.environment == environment,
-            child: ListTile(
-              enabled: config.isConfigured(environment) && !_saving,
-              selected: config.environment == environment,
-              leading: Icon(config.environment == environment
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked),
-              title: Text(_label(environment, strings)),
-              subtitle: config.isConfigured(environment)
-                  ? Text(config.apiBaseUrls[environment]!)
-                  : Text(strings.environmentNotConfigured(
-                      'API_BASE_URL_${environment.toUpperCase()}')),
-              onTap: () => _switchEnvironment(environment),
+        TDRadioGroup(
+          key: ValueKey('${config.environment}.$_saving'),
+          selectId: config.environment, direction: Axis.vertical,
+          radioCheckStyle: TDRadioStyle.hollowCircle,
+          onRadioGroupChange: (selectedId) {
+            if (selectedId != null) _switchEnvironment(selectedId);
+          },
+          directionalTdRadios: [
+            for (final environment in apiEnvironments) TDRadio(
+              id: environment, enable: config.isConfigured(environment) && !_saving,
+              title: _label(environment, strings), titleMaxLine: 2, subTitleMaxLine: 4,
+              subTitle: config.isConfigured(environment)
+                ? config.apiBaseUrls[environment]!
+                : strings.environmentNotConfigured('API_BASE_URL_${environment.toUpperCase()}'),
             ),
-          ),
+          ],
+        ),
         if (_saving) const LinearProgressIndicator(),
         const SizedBox(height: 16),
         Text(strings.apiAddressTitle, style: Theme.of(context).textTheme.titleMedium),
@@ -66,9 +67,7 @@ class _ApiEnvironmentSettingsState extends ConsumerState<ApiEnvironmentSettings>
       await ref.read(apiEnvironmentProvider.notifier).setEnvironment(environment);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).environmentSwitchFailed)),
-        );
+        TDToast.showText(AppLocalizations.of(context).environmentSwitchFailed, context: context);
       }
     } finally {
       if (mounted) setState(() => _saving = false);

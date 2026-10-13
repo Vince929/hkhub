@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 import '../../../app/localization/locale_controller.dart';
 import '../../../app/network/api_client.dart';
@@ -30,6 +31,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
   bool _busy = false;
   bool _editing = true;
   bool _localWarning = false;
+  bool _consent = false;
   int _formVersion = 0;
   int _generation = 0;
   CancelToken? _cancel;
@@ -47,6 +49,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
   void _loadRecord(String apiBaseUrl) {
     _storage = EducationStorage(ref.read(preferencesProvider), apiBaseUrl);
     final record = _storage.load();
+    _consent = _storage.loadConsent();
     _draft = record.form;
     _report = record.report;
     _editing = _report == null;
@@ -71,6 +74,19 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
     _editing = true;
     _saveTimer?.cancel();
     _saveTimer = Timer(const Duration(milliseconds: 500), () { unawaited(_persist()); });
+  }
+
+  void _consentChanged(bool consent) {
+    _consent = consent;
+    final storage = _storage;
+    // Serialize with record writes and clearing; do not invalidate the report.
+    _writes = _writes.then((_) async {
+      try {
+        await storage.saveConsent(consent);
+      } catch (_) {
+        if (mounted && identical(storage, _storage)) setState(() => _localWarning = true);
+      }
+    });
   }
 
   Future<void> _persist() {
@@ -148,13 +164,18 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
   Future<void> _clear() async {
     if (_busy) return;
     final strings = EducationStrings(ref.read(effectiveLocaleProvider));
-    final confirmed = await showDialog<bool>(context: context, builder: (context) => AlertDialog(
-      title: Text(strings.clearQuestion),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context, false), child: Text(strings.cancel)),
-        FilledButton(onPressed: () => Navigator.pop(context, true), child: Text(strings.clear)),
-      ],
-    ));
+    FocusScope.of(context).unfocus();
+    final confirmed = await showDialog<bool>(context: context, requestFocus: false,
+      builder: (dialogContext) => TDAlertDialog(
+        title: strings.clearQuestion, radius: 24,
+        buttonStyle: TDDialogButtonStyle.normal,
+        leftBtn: TDDialogButtonOptions(title: strings.cancel,
+          action: () => Navigator.of(dialogContext).pop(false)),
+        rightBtn: TDDialogButtonOptions(title: strings.clear,
+          theme: TDButtonTheme.danger,
+          action: () => Navigator.of(dialogContext).pop(true)),
+      ),
+    );
     if (confirmed != true || !mounted || _busy) return;
     _saveTimer?.cancel();
     _saveTimer = null;
@@ -167,7 +188,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
       if (!mounted || generation != _generation) return;
       setState(() {
         _draft = {}; _report = null; _error = null; _editing = true;
-        _localWarning = false; _busy = false; _formVersion++;
+        _consent = false; _localWarning = false; _busy = false; _formVersion++;
       });
       _top();
     } catch (_) {
@@ -234,6 +255,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
               EducationReportView(key: ValueKey(_report!.generatedAt), report: _report!, onEdit: _edit)
             else EducationForm(
               key: ValueKey(_formVersion), initialValues: _draft, busy: _busy,
+              initialConsent: _consent, onConsentChanged: _consentChanged,
               onChanged: _changed, onSubmit: (values) { unawaited(_analyse(values)); },
               onCancel: () => setState(() { _cancelAnalysis(); _error = null; }),
             ),

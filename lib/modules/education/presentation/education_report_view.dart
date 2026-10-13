@@ -27,10 +27,17 @@ class _EducationReportViewState extends State<EducationReportView> {
     final strings = EducationStrings(Localizations.localeOf(context));
     final schools = widget.report.schools.where((school) =>
       _filter == 'all' || school.programmes.any((item) => item.tier == _filter)).toList();
+    if (_filter == 'all') {
+      schools.sort((a, b) {
+        final probabilityOrder = b.maximum.compareTo(a.maximum);
+        return probabilityOrder != 0 ? probabilityOrder : a.id.compareTo(b.id);
+      });
+    }
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       _overview(strings),
       const SizedBox(height: 12),
-      _notes(strings),
+      OutlinedButton.icon(onPressed: widget.onEdit,
+        icon: const Icon(Icons.edit_outlined, size: 19), label: Text(strings.edit)),
       const SizedBox(height: 16),
       Row(children: [
         const Icon(Icons.account_balance_outlined, size: 20, color: AppTheme.studyBlue),
@@ -55,9 +62,6 @@ class _EducationReportViewState extends State<EducationReportView> {
         padding: const EdgeInsets.only(bottom: 10),
         child: _SchoolCard(key: ValueKey(school.id), school: school, filter: _filter, strings: strings),
       ),
-      const SizedBox(height: 4),
-      OutlinedButton.icon(onPressed: widget.onEdit,
-        icon: const Icon(Icons.edit_outlined, size: 19), label: Text(strings.edit)),
     ]);
   }
 
@@ -98,29 +102,6 @@ class _EducationReportViewState extends State<EducationReportView> {
     );
   }
 
-  Widget _notes(EducationStrings strings) => Container(
-    decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(20)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), child: Row(children: [
-        const Icon(Icons.info_outline_rounded, color: AppTheme.studyBlue, size: 19),
-        const SizedBox(width: 9),
-        Expanded(child: Text(strings.estimateNotice,
-          style: const TextStyle(color: AppTheme.studyInk, fontSize: 12, height: 1.5))),
-      ])),
-      ExpansionTile(tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        title: Text(strings.analysisNotes, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        children: [
-          Text(strings.disclaimer, style: const TextStyle(fontSize: 12, height: 1.7, color: AppTheme.studyMuted)),
-          if (widget.report.assumptions.isNotEmpty) Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: _Reasons(title: strings.assumptions, items: widget.report.assumptions,
-              icon: Icons.info_outline_rounded, accent: AppTheme.studyBlue),
-          ),
-        ]),
-    ]),
-  );
-
   Widget _filters(EducationStrings strings) {
     final programmes = widget.report.schools.expand((school) => school.programmes).toList();
     return SingleChildScrollView(scrollDirection: Axis.horizontal, child: Row(children: [
@@ -152,7 +133,13 @@ class _SchoolCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _tierColor(school.tier);
-    final programmes = school.programmes.where((item) => filter == 'all' || item.tier == filter);
+    final programmes = school.programmes.where((item) => filter == 'all' || item.tier == filter).toList();
+    if (filter == 'all') {
+      programmes.sort((a, b) {
+        final probabilityOrder = b.probability.compareTo(a.probability);
+        return probabilityOrder != 0 ? probabilityOrder : a.nameEn.compareTo(b.nameEn);
+      });
+    }
     final single = school.programmes.length == 1;
     final probability = single ? '${school.programmes.single.probability}%'
         : '${school.minimum}%–${school.maximum}%';

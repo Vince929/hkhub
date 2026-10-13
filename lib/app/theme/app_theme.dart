@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 abstract final class AppTheme {
   static const harborBlue = Color(0xFF164B71);
@@ -15,11 +16,34 @@ abstract final class AppTheme {
   static const studyMuted = Color(0xFF65788C);
   static const studyLine = Color(0xFFE5ECF5);
 
+  static TDThemeData _tdesign(Color primary, Color text, Color background) =>
+      TDThemeData.defaultData().copyWithTDThemeData(
+        'hkhub-${primary.toARGB32()}',
+        colorMap: {
+          'brandColor7': primary,
+          'brandNormalColor': primary,
+          'brandHoverColor': Color.lerp(primary, Colors.white, 0.12)!,
+          'brandClickColor': Color.lerp(primary, Colors.black, 0.12)!,
+          'brandLightColor': Color.lerp(primary, Colors.white, 0.93)!,
+          'brandFocusColor': Color.lerp(primary, Colors.white, 0.85)!,
+          'brandDisabledColor': Color.lerp(primary, Colors.white, 0.65)!,
+          'textColorBrand': primary,
+          'textColorLink': primary,
+          'textColorPrimary': text,
+          'bgColorPage': background,
+        },
+        radiusMap: {'radiusDefault': 12, 'radiusLarge': 16, 'radiusExtraLarge': 24},
+      );
+
   static ThemeData education(ThemeData base) {
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none,
     );
     return base.copyWith(
+      extensions: [
+        ...base.extensions.values.where((extension) => extension is! TDThemeData),
+        _tdesign(studyBlue, studyInk, studyBackground),
+      ],
       colorScheme: base.colorScheme.copyWith(
         primary: studyBlue, secondary: studyTeal,
         primaryContainer: const Color(0xFFEAF0FF),
@@ -78,6 +102,7 @@ abstract final class AppTheme {
     );
     return ThemeData(
       useMaterial3: true,
+      extensions: [_tdesign(harborBlue, ink, mist)],
       colorScheme: colors,
       scaffoldBackgroundColor: mist,
       appBarTheme: const AppBarTheme(

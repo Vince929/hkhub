@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/l10n/generated/app_localizations.dart';
 import '../../../app/localization/locale_controller.dart';
+import '../../../app/widgets/hk_selection_field.dart';
 import '../../home/presentation/service_connection_panel.dart';
 import 'api_environment_settings.dart';
 
@@ -55,14 +56,15 @@ class _LanguagePicker extends ConsumerWidget {
       (cantoneseLocale, '粵語（香港）'),
       (englishLocale, 'English'),
     ];
-    return Column(children: [
-      for (final (locale, label) in choices)
-        ListTile(
-          title: Text(label),
-          selected: selected == locale,
-          trailing: selected == locale ? const Icon(Icons.check) : null,
-          onTap: () => ref.read(localeProvider.notifier).setLocale(locale),
-        ),
-    ]);
+    return HkSelectionField(
+      label: AppLocalizations.of(context).languageTitle,
+      value: selected?.toLanguageTag() ?? 'system',
+      items: {for (final (locale, label) in choices) (locale?.toLanguageTag() ?? 'system'): label},
+      onChanged: (value) {
+        final locale = choices.firstWhere((choice) =>
+          (choice.$1?.toLanguageTag() ?? 'system') == value).$1;
+        ref.read(localeProvider.notifier).setLocale(locale);
+      },
+    );
   }
 }

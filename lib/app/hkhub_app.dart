@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart' show CupertinoLocalizations;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 import 'l10n/generated/app_localizations.dart';
 import 'localization/cantonese_localizations.dart';
@@ -18,6 +19,13 @@ class HkHubApp extends ConsumerStatefulWidget {
 }
 
 class _HkHubAppState extends ConsumerState<HkHubApp> {
+  @override
+  void initState() {
+    super.initState();
+    // TDesign follows the nearest Material theme, including education's palette.
+    TDTheme.needMultiTheme();
+  }
+
   @override
   void reassemble() {
     super.reassemble();
