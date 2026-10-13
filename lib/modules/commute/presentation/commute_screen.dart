@@ -196,7 +196,7 @@ class _CommuteScreenState extends ConsumerState<CommuteScreen> with WidgetsBindi
           child: FilledButton(onPressed: _refresh, child: Text(strings.retry)),
         ),
       ]),
-    ));
+    )));
   }
 }
 

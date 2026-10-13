@@ -15,6 +15,7 @@ class CommutePreferences {
 
   String get _audienceKey => '$_key.audience';
   String get _favouritesKey => '$_key.ports';
+  String get _routesKey => '$_key.routes';
 
   CommuteAudience? loadAudience() =>
       CommuteAudienceApi.fromApi(_preferences.getString(_audienceKey));
