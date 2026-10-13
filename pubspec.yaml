@@ -16,7 +16,12 @@ dependencies:
   flutter_riverpod: ^2.6.1
   go_router: ^16.2.1
   shared_preferences: ^2.5.3
-  tdesign_flutter: 0.2.7
+  # Contributor fix linked in Tencent/tdesign-flutter#943; pinned until a compatible release.
+  tdesign_flutter:
+    git:
+      url: https://github.com/runoob-coder/tdesign-flutter.git
+      ref: 26865fd5c2195c7fbad0afc851a0238815f745a7
+      path: tdesign-component
   url_launcher: ^6.3.2
 
 dev_dependencies:

@@ -541,10 +541,11 @@ packages:
   tdesign_flutter:
     dependency: "direct main"
     description:
-      name: tdesign_flutter
-      sha256: "79c1ed3fc67836426a8a93e5e0dcd764befa1341eae13a904bcf9e7de996f05c"
-      url: "https://pub.dev"
-    source: hosted
+      path: tdesign-component
+      ref: "26865fd5c2195c7fbad0afc851a0238815f745a7"
+      resolved-ref: "26865fd5c2195c7fbad0afc851a0238815f745a7"
+      url: "https://github.com/runoob-coder/tdesign-flutter.git"
+    source: git
     version: "0.2.7"
   tdesign_flutter_adaptation:
     dependency: transitive
