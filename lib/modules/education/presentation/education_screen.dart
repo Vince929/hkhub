@@ -9,9 +9,9 @@ import '../../../app/localization/locale_controller.dart';
 import '../../../app/network/api_client.dart';
 import '../../../app/network/api_exception.dart';
 import '../../../app/providers.dart';
-import '../../../app/theme/app_theme.dart';
 import '../data/education_models.dart';
 import '../data/education_storage.dart';
+import '../theme/education_theme.dart';
 import 'education_form.dart';
 import 'education_report_view.dart';
 import 'education_strings.dart';
@@ -222,7 +222,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
     // Cached reports are not translated by changing labels; regenerate in the new language.
     final showReport = !_editing && _report != null && _report!.language == locale.toLanguageTag();
     return Theme(
-      data: AppTheme.education(Theme.of(context)),
+      data: EducationTheme.apply(Theme.of(context)),
       child: Builder(builder: (context) => _page(context, strings, showReport)),
     );
   }
@@ -234,7 +234,7 @@ class _EducationScreenState extends ConsumerState<EducationScreen> {
         leading: Navigator.of(context).canPop() ? Padding(
           padding: const EdgeInsets.all(8),
           child: IconButton.filledTonal(
-            style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: AppTheme.studyInk),
+            style: IconButton.styleFrom(backgroundColor: Colors.white, foregroundColor: EducationTheme.ink),
             onPressed: () => Navigator.of(context).maybePop(),
             tooltip: MaterialLocalizations.of(context).backButtonTooltip,
             icon: const Icon(Icons.arrow_back_rounded, size: 20),

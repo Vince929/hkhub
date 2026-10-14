@@ -12,12 +12,13 @@ final bordersProvider = FutureProvider.autoDispose<BordersData>((ref) {
   return client.request('commute/borders', decode: BordersData.new, cancelToken: token);
 });
 
-final historyProvider = FutureProvider.autoDispose.family<HistoryData, (String, String)>((ref, key) {
+final historyProvider = FutureProvider.autoDispose.family<HistoryData, (String, String, String)>((ref, key) {
   final client = ref.watch(apiClientProvider);
   final token = CancelToken();
   ref.onDispose(() => token.cancel());
   return client.request('commute/borders/${key.$1}/history',
-    queryParameters: {'audience': key.$2}, decode: HistoryData.new, cancelToken: token);
+    queryParameters: {'audience': key.$2, 'direction': key.$3},
+    decode: HistoryData.new, cancelToken: token);
 });
 
 final transitProvider = FutureProvider.autoDispose.family<TransitData, String>((ref, code) {
@@ -28,8 +29,7 @@ final transitProvider = FutureProvider.autoDispose.family<TransitData, String>((
 });
 
 class CommutePreferences {
-  const CommutePreferences({this.audience, this.borders = const {}, this.routes = const {}, this.busy = false});
-  final String? audience;
+  const CommutePreferences({this.borders = const {}, this.routes = const {}, this.busy = false});
   final Set<String> borders;
   final Set<String> routes;
   final bool busy;
@@ -49,20 +49,12 @@ class CommutePreferencesController extends Notifier<CommutePreferences> {
     final config = ref.watch(activeAppConfigProvider);
     _key = 'hkhub.commute.${Uri.encodeComponent(config.apiBaseUrl)}';
     final preferences = ref.watch(preferencesProvider);
-    final selected = preferences.getString('$_key.audience');
     return CommutePreferences(
-      audience: audiences.contains(selected) ? selected : null,
       borders: (preferences.getStringList('$_key.borders') ?? []).where(borderCodes.contains).toSet(),
       routes: (preferences.getStringList('$_key.routes') ?? []).toSet(),
     );
   }
 
-  Future<void> selectAudience(String? audience) {
-    if (audience != null && !audiences.contains(audience)) {
-      throw ArgumentError('Unsupported commute audience');
-    }
-    return _save('audience', audience);
-  }
   Future<void> toggleBorder(String code) => _save('borders', code);
   Future<void> toggleRoute(String id) => _save('routes', id);
 
@@ -81,16 +73,13 @@ class CommutePreferencesController extends Notifier<CommutePreferences> {
     if (field == 'routes' && value != null) {
       if (!routes.remove(value)) routes.add(value);
     }
-    state = CommutePreferences(audience: previous.audience, borders: borders, routes: routes, busy: true);
+    state = CommutePreferences(borders: borders, routes: routes, busy: true);
     try {
-      final saved = field == 'audience'
-          ? value == null ? await preferences.remove('$key.audience')
-              : await preferences.setString('$key.audience', value)
-          : await preferences.setStringList('$key.$field', (field == 'borders' ? borders : routes).toList());
+      final saved = await preferences.setStringList(
+        '$key.$field', (field == 'borders' ? borders : routes).toList());
       if (!saved) throw StateError('Could not save commute preference');
       if (generation == _generation) {
-        state = CommutePreferences(audience: field == 'audience' ? value : previous.audience,
-          borders: borders, routes: routes);
+        state = CommutePreferences(borders: borders, routes: routes);
       }
     } catch (_) {
       if (generation == _generation) state = previous;

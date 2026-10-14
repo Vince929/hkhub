@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../app/widgets/hk_sail_mark.dart';
 import '../data/commute_models.dart';
 import '../data/commute_providers.dart';
+import '../theme/commute_theme.dart';
 import 'commute_strings.dart';
 import 'commute_widgets.dart';
 
@@ -14,20 +16,24 @@ class CommuteHistorySection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final copy = CommuteStrings(Localizations.localeOf(context));
-    final audience = ref.watch(commutePreferencesProvider).audience;
     return CommuteSection(title: copy.historyTitle, subtitle: copy.historyNotice,
-      child: audience == null ? Text(copy.chooseForHistory) : ref.watch(historyProvider((code, audience))).when(
-        data: (history) => _HistoryContent(history: history, audience: audience),
-        error: (_, _) => CommuteFailure(retry: () => ref.invalidate(historyProvider((code, audience)))),
-        loading: () => const Center(child: CircularProgressIndicator()),
-      ));
+      icon: Icons.insights_rounded,
+      child: Column(children: [
+        for (final direction in directions)
+          ref.watch(historyProvider((code, queueAudience, direction))).when(
+            data: (history) => _HistoryContent(history: history, direction: direction),
+            error: (_, _) => CommuteFailure(retry: () => ref.invalidate(
+              historyProvider((code, queueAudience, direction)))),
+            loading: () => const HkSailLoader(),
+          ),
+      ]));
   }
 }
 
 class _HistoryContent extends StatelessWidget {
-  const _HistoryContent({required this.history, required this.audience});
+  const _HistoryContent({required this.history, required this.direction});
   final HistoryData history;
-  final String audience;
+  final String direction;
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +42,22 @@ class _HistoryContent extends StatelessWidget {
     final weekly = comparison?.wholeWeek == true
         ? copy.weekly(comparison!.position, history.current.code) : '';
     return Container(padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
+      decoration: AppTheme.cardSurface(),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('${history.slotStart}–${history.slotEnd} · ${copy.audience(audience)}',
-          style: const TextStyle(color: AppTheme.harborBlue, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        if (history.inCurrentSlot) QueueBlock(
-          queue: history.current, audience: audience, now: history.serverTime),
-        Text(copy.coverage(history.validCount), style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        if (!history.inCurrentSlot) Text(copy.refreshHistory)
-        else if (history.validCount == 0) Text(copy.accumulating)
-        else if (comparison == null) Text(copy.noCurrentSlot)
-        else Text(copy.comparison(comparison)),
+        Row(children: [
+          Expanded(child: Text('${history.slotStart}–${history.slotEnd} · ${copy.directionName(direction)}',
+            style: const TextStyle(color: CommuteTheme.accent, fontSize: 17, fontWeight: FontWeight.w700))),
+          if (history.inCurrentSlot) QueueLevelChip(queue: history.current, now: history.serverTime),
+        ]),
+        Padding(padding: const EdgeInsets.only(top: 14),
+          child: Text(copy.coverage(history.validCount), style: const TextStyle(
+            color: AppTheme.ink, fontSize: 16, fontWeight: FontWeight.w700))),
+        if (!history.inCurrentSlot) Padding(padding: const EdgeInsets.only(top: 8),
+          child: Text(copy.refreshHistory))
+        else if (history.validCount > 0 && comparison == null) Padding(
+          padding: const EdgeInsets.only(top: 8), child: Text(copy.noCurrentSlot))
+        else if (comparison != null) Padding(padding: const EdgeInsets.only(top: 8),
+          child: Text(copy.comparison(comparison))),
         if (weekly.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 10),
           child: Text(weekly, style: const TextStyle(color: AppTheme.ferryGreen, fontWeight: FontWeight.w700))),
         const SizedBox(height: 16),

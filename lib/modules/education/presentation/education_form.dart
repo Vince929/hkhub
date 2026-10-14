@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
-import '../../../app/theme/app_theme.dart';
 import '../../../app/widgets/hk_form_input.dart';
 import '../../../app/widgets/hk_selection_field.dart';
+import '../theme/education_theme.dart';
 import 'education_strings.dart';
 
 class EducationForm extends StatefulWidget {
@@ -99,7 +99,7 @@ class _EducationFormState extends State<EducationForm> {
 
   Widget _introduction(EducationStrings strings) => Container(
     padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(color: AppTheme.studyBlue, borderRadius: BorderRadius.circular(28)),
+    decoration: BoxDecoration(color: EducationTheme.blue, borderRadius: BorderRadius.circular(28)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(width: 48, height: 48,
         decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.16),
@@ -130,7 +130,7 @@ class _EducationFormState extends State<EducationForm> {
   );
 
   Widget _academic(EducationStrings strings) => _section(
-    strings.academic, Icons.history_edu_rounded, AppTheme.studyBlue, [
+    strings.academic, Icons.history_edu_rounded, EducationTheme.blue, [
       _field('institution', strings.institution, max: 120, icon: Icons.account_balance_outlined),
       _field('major', strings.major, max: 120, icon: Icons.menu_book_rounded),
       _pair(
@@ -140,12 +140,12 @@ class _EducationFormState extends State<EducationForm> {
         _field('grade', strings.grade, numeric: true, max: 10,
           validator: (value) => _score(value, _scale, strings)),
       ),
-      Text(strings.gradeHint, style: const TextStyle(fontSize: 12, color: AppTheme.studyMuted)),
+      Text(strings.gradeHint, style: const TextStyle(fontSize: 12, color: EducationTheme.muted)),
     ],
   );
 
   Widget _plans(EducationStrings strings) => _section(
-    strings.plans, Icons.explore_rounded, AppTheme.studyTeal, [
+    strings.plans, Icons.explore_rounded, EducationTheme.teal, [
       _field('direction', strings.direction, max: 150, hint: strings.directionHint,
         icon: Icons.explore_outlined),
       _field('intake_year', strings.year, numeric: true, max: 4,
@@ -158,7 +158,7 @@ class _EducationFormState extends State<EducationForm> {
   );
 
   Widget _additional(EducationStrings strings) => _section(
-    strings.optional, Icons.tune_rounded, AppTheme.studyBlue, [
+    strings.optional, Icons.tune_rounded, EducationTheme.blue, [
       _choice(strings.institutionTier, _tier, {
         for (final tier in ['unknown', '985', '211', 'other']) tier: strings.tierName(tier),
       }, (value) { setState(() => _tier = value); _changed(); }),
@@ -177,29 +177,29 @@ class _EducationFormState extends State<EducationForm> {
   Widget _submission(EducationStrings strings) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Container(
-        decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(20)),
+        decoration: BoxDecoration(color: EducationTheme.notice, borderRadius: BorderRadius.circular(20)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 0), child: Row(children: [
-            const Icon(Icons.verified_user_outlined, color: AppTheme.studyBlue, size: 19),
+            const Icon(Icons.verified_user_outlined, color: EducationTheme.blue, size: 19),
             const SizedBox(width: 8),
             Expanded(child: Text(strings.estimateNotice,
-              style: const TextStyle(fontSize: 12, height: 1.5, color: AppTheme.studyInk))),
+              style: const TextStyle(fontSize: 12, height: 1.5, color: EducationTheme.ink))),
           ])),
           ExpansionTile(tilePadding: const EdgeInsets.symmetric(horizontal: 16),
             childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             title: Text(strings.privacyTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             children: [Text('${strings.privacy}\n\n${strings.disclaimer}',
-              style: const TextStyle(fontSize: 12, height: 1.7, color: AppTheme.studyMuted))]),
+              style: const TextStyle(fontSize: 12, height: 1.7, color: EducationTheme.muted))]),
         ]),
       ),
       const SizedBox(height: 10),
       TDCheckbox(
         checked: _consent, enable: !widget.busy, showDivider: false,
-        style: TDCheckboxStyle.square, selectColor: AppTheme.studyBlue,
+        style: TDCheckboxStyle.square, selectColor: EducationTheme.blue,
         backgroundColor: Colors.transparent, insetSpacing: 0, checkBoxLeftSpace: 0,
         customSpace: const EdgeInsets.symmetric(vertical: 12),
         customContentBuilder: (context, checked, content) => Text(strings.consentLabel,
-          style: const TextStyle(fontSize: 13, height: 1.5, color: AppTheme.studyInk)),
+          style: const TextStyle(fontSize: 13, height: 1.5, color: EducationTheme.ink)),
         onCheckBoxChanged: (value) {
           setState(() { _consent = value; _consentError = false; });
           widget.onConsentChanged?.call(_consent);
@@ -212,7 +212,7 @@ class _EducationFormState extends State<EducationForm> {
         text: strings.generate, isBlock: true, height: 56, margin: EdgeInsets.zero,
         size: TDButtonSize.large, theme: TDButtonTheme.primary,
         disabled: widget.busy, onTap: _submit,
-        style: TDButtonStyle(backgroundColor: AppTheme.studyBlue,
+        style: TDButtonStyle(backgroundColor: EducationTheme.blue,
           textColor: Colors.white, radius: BorderRadius.circular(18)),
         activeStyle: TDButtonStyle(backgroundColor: TDTheme.of(context).brandClickColor,
           textColor: Colors.white, radius: BorderRadius.circular(18)),
@@ -227,10 +227,10 @@ class _EducationFormState extends State<EducationForm> {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18)),
         child: Column(children: [
           Text(strings.generating, textAlign: TextAlign.center,
-            style: const TextStyle(color: AppTheme.studyInk, fontSize: 13, height: 1.5)),
+            style: const TextStyle(color: EducationTheme.ink, fontSize: 13, height: 1.5)),
           const SizedBox(height: 6),
           Text(strings.waiting, textAlign: TextAlign.center,
-            style: const TextStyle(color: AppTheme.studyMuted, fontSize: 12, height: 1.5)),
+            style: const TextStyle(color: EducationTheme.muted, fontSize: 12, height: 1.5)),
           if (widget.onCancel != null) TextButton.icon(
             onPressed: widget.onCancel, icon: const Icon(Icons.close_rounded, size: 18),
             label: Text(strings.cancel),
@@ -243,7 +243,7 @@ class _EducationFormState extends State<EducationForm> {
   Widget _section(String title, IconData icon, Color accent, List<Widget> children) => Container(
     margin: const EdgeInsets.only(bottom: 18), padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24),
-      border: Border.all(color: AppTheme.studyLine)),
+      border: Border.all(color: EducationTheme.line)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       Row(children: [
         Container(width: 38, height: 38,
@@ -252,7 +252,7 @@ class _EducationFormState extends State<EducationForm> {
           child: Icon(icon, size: 21, color: accent)),
         const SizedBox(width: 12),
         Expanded(child: Text(title, style: const TextStyle(fontSize: 17,
-          fontWeight: FontWeight.w700, color: AppTheme.studyInk))),
+          fontWeight: FontWeight.w700, color: EducationTheme.ink))),
       ]),
       const SizedBox(height: 22), ...children,
     ]),
@@ -268,7 +268,7 @@ class _EducationFormState extends State<EducationForm> {
   Widget _label(String text, Widget child) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.studyInk)),
+      Text(text, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: EducationTheme.ink)),
       const SizedBox(height: 8), child,
     ]),
   );

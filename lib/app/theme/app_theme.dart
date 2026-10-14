@@ -1,20 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
+/// Global theme: the baseline every tool inherits.
+///
+/// Module palettes and module theme overlays live next to their module, in
+/// `lib/modules/<module>/theme/`. Only truly shared things stay here:
+/// the base palette, the card/surface recipe, semantic levels and the
+/// Material + TDesign baseline.
+///
+/// Colour follows a three-tier model (see `docs/UI风格规范.md`):
+///  1. structure / brand (deep) — the constants below;
+///  2. categorical (mid band) — `ToolAccents`;
+///  3. semantic status — the `level*` constants and [signalAmber].
+/// Never mix the tiers: actions use tier 1, categorisation uses tier 2, status
+/// uses tier 3.
 abstract final class AppTheme {
+  /// Deep harbour blue: the structural anchor (arrival accents, deep surfaces).
   static const harborBlue = Color(0xFF164B71);
+
+  /// Ferry green-teal: the brand primary — actions, links and app chrome
+  /// (青色为主).
   static const ferryGreen = Color(0xFF147D74);
+
+  /// Amber for warnings, delays and status emphasis.
   static const signalAmber = Color(0xFFBA771B);
   static const mist = Color(0xFFF3F7FA);
   static const ink = Color(0xFF183247);
 
-  // Education has a focused visual system without changing other tools.
-  static const studyBlue = Color(0xFF326BEB);
-  static const studyTeal = Color(0xFF12897F);
-  static const studyBackground = Color(0xFFF4F7FC);
-  static const studyInk = Color(0xFF15324D);
-  static const studyMuted = Color(0xFF65788C);
-  static const studyLine = Color(0xFFE5ECF5);
+  // Shared card recipe every tool builds on, so surfaces stay consistent.
+  static const surfaceLine = Color(0xFFE4ECF4);
+  static const cardRadius = 24.0;
+
+  // Shared semantic levels for status chips.
+  static const levelLow = Color(0xFF2F9E68);
+  static const levelMedium = Color(0xFFC07A16);
+  static const levelHigh = Color(0xFFC0392F);
+  static const levelNeutral = Color(0xFF65788C);
+
+  static BoxDecoration cardSurface({Color color = Colors.white, Color? line}) => BoxDecoration(
+    color: color,
+    borderRadius: BorderRadius.circular(cardRadius),
+    border: Border.all(color: line ?? surfaceLine),
+  );
+
+  static BoxDecoration tinted(Color accent, {double radius = 18, double alpha = 0.06}) =>
+      BoxDecoration(color: accent.withValues(alpha: alpha),
+        borderRadius: BorderRadius.circular(radius));
 
   static TDThemeData _tdesign(Color primary, Color text, Color background) =>
       TDThemeData.defaultData().copyWithTDThemeData(
@@ -35,74 +66,24 @@ abstract final class AppTheme {
         radiusMap: {'radiusDefault': 12, 'radiusLarge': 16, 'radiusExtraLarge': 24},
       );
 
-  static ThemeData education(ThemeData base) {
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none,
-    );
-    return base.copyWith(
-      extensions: [
-        ...base.extensions.values.where((extension) => extension is! TDThemeData),
-        _tdesign(studyBlue, studyInk, studyBackground),
-      ],
-      colorScheme: base.colorScheme.copyWith(
-        primary: studyBlue, secondary: studyTeal,
-        primaryContainer: const Color(0xFFEAF0FF),
-        onPrimaryContainer: studyInk,
-        surface: Colors.white, onSurface: studyInk,
-      ),
-      scaffoldBackgroundColor: studyBackground,
-      appBarTheme: base.appBarTheme.copyWith(
-        backgroundColor: studyBackground, foregroundColor: studyInk,
-        titleTextStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: studyInk),
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true, fillColor: const Color(0xFFF3F6FB),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 17),
-        border: border, enabledBorder: border,
-        disabledBorder: border,
-        focusedBorder: border.copyWith(borderSide: const BorderSide(color: studyBlue, width: 1.5)),
-        errorBorder: border.copyWith(borderSide: BorderSide(color: base.colorScheme.error)),
-        focusedErrorBorder: border.copyWith(borderSide: BorderSide(color: base.colorScheme.error, width: 1.5)),
-        hintStyle: const TextStyle(color: studyMuted, fontSize: 14),
-        helperStyle: const TextStyle(color: studyMuted, fontSize: 12, height: 1.5),
-        errorMaxLines: 3,
-      ),
-      filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
-        backgroundColor: studyBlue, foregroundColor: Colors.white,
-        minimumSize: const Size(48, 56), elevation: 0,
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      )),
-      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(
-        foregroundColor: studyBlue, minimumSize: const Size(48, 52),
-        side: const BorderSide(color: studyLine),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-      )),
-      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(foregroundColor: studyBlue)),
-      checkboxTheme: CheckboxThemeData(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-        side: const BorderSide(color: studyMuted, width: 1.3),
-      ),
-      expansionTileTheme: const ExpansionTileThemeData(
-        iconColor: studyBlue, collapsedIconColor: studyMuted,
-        textColor: studyInk, collapsedTextColor: studyInk,
-        shape: Border(), collapsedShape: Border(),
-      ),
-      dividerTheme: const DividerThemeData(color: studyLine, space: 1),
-    );
-  }
+  /// Replaces the TDesign extension so a module can re-brand its controls
+  /// without touching any other global token.
+  static Iterable<ThemeExtension<dynamic>> tdesignExtensions(
+      ThemeData base, Color primary, Color text, Color background) => [
+    ...base.extensions.values.where((extension) => extension is! TDThemeData),
+    _tdesign(primary, text, background),
+  ];
 
   static ThemeData get light {
     final colors = ColorScheme.fromSeed(
-      seedColor: harborBlue,
-      primary: harborBlue,
-      secondary: ferryGreen,
+      seedColor: ferryGreen,
+      primary: ferryGreen,
+      secondary: harborBlue,
       surface: Colors.white,
     );
     return ThemeData(
       useMaterial3: true,
-      extensions: [_tdesign(harborBlue, ink, mist)],
+      extensions: [_tdesign(ferryGreen, ink, mist)],
       colorScheme: colors,
       scaffoldBackgroundColor: mist,
       appBarTheme: const AppBarTheme(

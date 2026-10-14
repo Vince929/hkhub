@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../app/widgets/hk_sail_mark.dart';
 import '../data/commute_models.dart' hide Border;
 import '../data/commute_providers.dart';
+import '../theme/commute_theme.dart';
 import 'commute_strings.dart';
 import 'commute_widgets.dart';
 
@@ -17,6 +19,7 @@ class CommuteTransitSection extends ConsumerWidget {
     final copy = CommuteStrings(Localizations.localeOf(context));
     final preferences = ref.watch(commutePreferencesProvider);
     return CommuteSection(title: copy.transitTitle, subtitle: copy.transitNotice,
+      icon: Icons.directions_transit_rounded,
       child: ref.watch(transitProvider(code)).when(
         data: (data) {
           final routes = [...data.routes];
@@ -29,7 +32,7 @@ class CommuteTransitSection extends ConsumerWidget {
           return Column(children: [for (final route in routes) _RouteCard(route: route, data: data)]);
         },
         error: (_, _) => CommuteFailure(retry: () => ref.invalidate(transitProvider(code))),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const HkSailLoader(),
       ));
   }
 }
@@ -55,9 +58,8 @@ class _RouteCard extends ConsumerWidget {
     final departures = route.departures.where((departure) => !departure.time.isBefore(data.now) &&
       departure.dataTime != null && data.now.difference(departure.dataTime!).inSeconds < 120).toList();
     return Padding(padding: const EdgeInsets.only(bottom: 12), child: Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 12, 16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFDFE8EE))),
+      padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
+      decoration: AppTheme.cardSurface(),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         _RouteHeader(route: route),
         const SizedBox(height: 10),
@@ -87,13 +89,15 @@ class _RouteHeader extends ConsumerWidget {
     return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Padding(padding: const EdgeInsets.only(top: 8, right: 10), child: Icon(
         route.mode == 'mtr' ? Icons.train_outlined : Icons.directions_bus_outlined,
-        color: AppTheme.harborBlue)),
+        color: CommuteTheme.accent)),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('${copy.operatorName(route.operatorCode)}  ${route.route}',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        Text.rich(TextSpan(children: [
+          TextSpan(text: '${copy.operatorName(route.operatorCode)}  ${route.route}',
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.ink)),
+          TextSpan(text: '  ${route.stop}', style: const TextStyle(
+            fontSize: 18, fontWeight: FontWeight.w600, color: CommuteTheme.accent)),
+        ])),
         Text(copy.destination(route.destination)),
-        const SizedBox(height: 4),
-        Text(route.stop, style: Theme.of(context).textTheme.bodySmall),
       ])),
       FavoriteButton(saved: preferences.routes.contains(route.id),
         onPressed: preferences.busy ? null : () => savePreference(context,
@@ -109,16 +113,25 @@ class _DepartureRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final copy = CommuteStrings(Localizations.localeOf(context));
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 7), child: Row(children: [
-      Text(copy.timeOnly(departure.time), style: const TextStyle(
-        fontSize: 24, fontWeight: FontWeight.w700, color: AppTheme.harborBlue)),
+    return Padding(padding: const EdgeInsets.symmetric(vertical: 8), child: Row(children: [
+      Container(width: 64, padding: const EdgeInsets.symmetric(vertical: 9),
+        alignment: Alignment.center,
+        decoration: AppTheme.tinted(CommuteTheme.accent, radius: 12, alpha: 0.07),
+        child: Text(copy.timeOnly(departure.time), style: const TextStyle(
+          fontSize: 18, fontWeight: FontWeight.w700, color: CommuteTheme.accent))),
       const SizedBox(width: 14),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(copy.departureKind(departure.kind)),
-        Text(copy.destination(departure.destination), style: Theme.of(context).textTheme.bodySmall),
-        if (departure.platform.isNotEmpty) Text(copy.platform(departure.platform)),
-        if (departure.remark.isNotEmpty) Text(departure.remark, style: Theme.of(context).textTheme.bodySmall),
+        Text(copy.destination(departure.destination), style: const TextStyle(
+          fontSize: 15, fontWeight: FontWeight.w600, color: AppTheme.ink)),
+        if (departure.remark.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 3),
+          child: Text(departure.remark, style: Theme.of(context).textTheme.bodySmall)),
       ])),
+      if (departure.platform.isNotEmpty) Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: AppTheme.tinted(CommuteTheme.accent, radius: 10, alpha: 0.09),
+        child: Text(copy.platform(departure.platform), style: const TextStyle(
+          fontSize: 12, fontWeight: FontWeight.w600, color: CommuteTheme.accent)),
+      ),
     ]));
   }
 }

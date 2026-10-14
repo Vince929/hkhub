@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../app/theme/app_theme.dart';
 import '../data/education_models.dart';
+import '../theme/education_theme.dart';
 import 'education_strings.dart';
 
 Color _tierColor(String tier) => switch (tier) {
-  'reach' => const Color(0xFFCE4254),
-  'match' => const Color(0xFF9A6A0B),
-  _ => const Color(0xFF16825D),
+  'reach' => AppTheme.levelHigh,
+  'match' => AppTheme.levelMedium,
+  _ => AppTheme.levelLow,
 };
 
 class EducationReportView extends StatefulWidget {
@@ -40,10 +41,10 @@ class _EducationReportViewState extends State<EducationReportView> {
         icon: const Icon(Icons.edit_outlined, size: 19), label: Text(strings.edit)),
       const SizedBox(height: 16),
       Row(children: [
-        const Icon(Icons.account_balance_outlined, size: 20, color: AppTheme.studyBlue),
+        const Icon(Icons.account_balance_outlined, size: 20, color: EducationTheme.blue),
         const SizedBox(width: 9),
         Expanded(child: Text(strings.programmeLabel, style: const TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.studyInk))),
+          fontSize: 18, fontWeight: FontWeight.w700, color: EducationTheme.ink))),
       ]),
       const SizedBox(height: 10),
       _filters(strings),
@@ -52,10 +53,10 @@ class _EducationReportViewState extends State<EducationReportView> {
         padding: const EdgeInsets.all(28),
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
         child: Column(children: [
-          const Icon(Icons.search_off_rounded, size: 34, color: AppTheme.studyMuted),
+          const Icon(Icons.search_off_rounded, size: 34, color: EducationTheme.muted),
           const SizedBox(height: 12),
           Text(widget.report.schools.isEmpty ? strings.noSchools : strings.noResults,
-            textAlign: TextAlign.center, style: const TextStyle(height: 1.6, color: AppTheme.studyMuted)),
+            textAlign: TextAlign.center, style: const TextStyle(height: 1.6, color: EducationTheme.muted)),
         ]),
       ),
       for (final school in schools) Padding(
@@ -69,7 +70,7 @@ class _EducationReportViewState extends State<EducationReportView> {
     final date = DateTime.parse(widget.report.generatedAt).toLocal();
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(color: AppTheme.studyInk, borderRadius: BorderRadius.circular(24)),
+      decoration: BoxDecoration(color: EducationTheme.ink, borderRadius: BorderRadius.circular(24)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(width: 36, height: 36,
@@ -112,8 +113,8 @@ class _EducationReportViewState extends State<EducationReportView> {
             '${filter == 'all' ? programmes.length : programmes.where((item) => item.tier == filter).length}'),
           selected: _filter == filter, showCheckmark: false,
           labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
-            color: _filter == filter ? Colors.white : AppTheme.studyMuted),
-          selectedColor: filter == 'all' ? AppTheme.studyBlue : _tierColor(filter),
+            color: _filter == filter ? Colors.white : EducationTheme.muted),
+          selectedColor: filter == 'all' ? EducationTheme.blue : _tierColor(filter),
           backgroundColor: Colors.white, side: BorderSide.none,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -147,7 +148,7 @@ class _SchoolCard extends StatelessWidget {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.studyLine)),
+        border: Border.all(color: EducationTheme.line)),
       child: ExpansionTile(
         key: ValueKey('${school.id}:$filter'), initiallyExpanded: false,
         dense: true, visualDensity: VisualDensity.compact,
@@ -157,13 +158,13 @@ class _SchoolCard extends StatelessWidget {
         shape: const Border(), collapsedShape: const Border(),
         leading: Container(width: 36, height: 36, alignment: Alignment.center,
           decoration: BoxDecoration(color: const Color(0xFFEAF0FF), borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.account_balance_rounded, color: AppTheme.studyBlue, size: 20)),
+          child: const Icon(Icons.account_balance_rounded, color: EducationTheme.blue, size: 20)),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(school.name, style: const TextStyle(fontSize: 16, height: 1.3,
-            fontWeight: FontWeight.w700, color: AppTheme.studyInk)),
+            fontWeight: FontWeight.w700, color: EducationTheme.ink)),
           if (school.name != school.nameEn) Padding(padding: const EdgeInsets.only(top: 2),
             child: Text(school.nameEn,
-              style: const TextStyle(fontSize: 11, height: 1.3, color: AppTheme.studyMuted))),
+              style: const TextStyle(fontSize: 11, height: 1.3, color: EducationTheme.muted))),
         ]),
         subtitle: Padding(padding: const EdgeInsets.only(top: 6),
           child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
@@ -172,11 +173,11 @@ class _SchoolCard extends StatelessWidget {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.5, color: color))),
             _TierBadge(tier: school.tier, strings: strings),
             Text(strings.programmeCount(school.programmes.length),
-              style: const TextStyle(fontSize: 11, color: AppTheme.studyMuted)),
+              style: const TextStyle(fontSize: 11, color: EducationTheme.muted)),
           ])),
         children: [
           Align(alignment: Alignment.centerLeft, child: Text(explanation,
-            style: const TextStyle(fontSize: 11, height: 1.4, color: AppTheme.studyMuted))),
+            style: const TextStyle(fontSize: 11, height: 1.4, color: EducationTheme.muted))),
           for (final programme in programmes) Padding(
             padding: const EdgeInsets.only(top: 8),
             child: _ProgrammeCard(key: ValueKey('${school.id}:${programme.nameEn}'),
@@ -207,21 +208,21 @@ class _ProgrammeCard extends StatelessWidget {
         shape: const Border(), collapsedShape: const Border(),
         title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(programme.name, style: const TextStyle(fontSize: 14, height: 1.35,
-            fontWeight: FontWeight.w600, color: AppTheme.studyInk)),
+            fontWeight: FontWeight.w600, color: EducationTheme.ink)),
           if (programme.nameEn != programme.name) Padding(padding: const EdgeInsets.only(top: 2),
             child: Text(programme.nameEn,
-              style: const TextStyle(fontSize: 11, height: 1.3, color: AppTheme.studyMuted))),
+              style: const TextStyle(fontSize: 11, height: 1.3, color: EducationTheme.muted))),
         ]),
         subtitle: Padding(padding: const EdgeInsets.only(top: 5),
           child: Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
             Text('${programme.probability}%', style: TextStyle(fontSize: 20,
               fontWeight: FontWeight.w700, letterSpacing: -0.4, color: color)),
             _TierBadge(tier: programme.tier, strings: strings),
-            Text(strings.aiEstimate, style: const TextStyle(fontSize: 11, color: AppTheme.studyMuted)),
+            Text(strings.aiEstimate, style: const TextStyle(fontSize: 11, color: EducationTheme.muted)),
           ])),
         children: [
           Align(alignment: Alignment.centerLeft, child: SelectableText(programme.relevance,
-            style: const TextStyle(fontSize: 13, height: 1.5, color: AppTheme.studyInk))),
+            style: const TextStyle(fontSize: 13, height: 1.5, color: EducationTheme.ink))),
           const SizedBox(height: 8),
           ClipRRect(borderRadius: BorderRadius.circular(4), child: LinearProgressIndicator(
             value: programme.probability / 100, minHeight: 4, color: color,
@@ -230,13 +231,13 @@ class _ProgrammeCard extends StatelessWidget {
           )),
           const SizedBox(height: 8),
           _Reasons(title: strings.strengths, items: programme.strengths,
-            icon: Icons.check_circle_outline_rounded, accent: AppTheme.studyTeal),
+            icon: Icons.check_circle_outline_rounded, accent: EducationTheme.teal),
           const SizedBox(height: 6),
           _Reasons(title: strings.weaknesses, items: programme.weaknesses,
-            icon: Icons.info_outline_rounded, accent: const Color(0xFF9A6A0B)),
+            icon: Icons.info_outline_rounded, accent: AppTheme.levelMedium),
           const SizedBox(height: 6),
           _Reasons(title: strings.nextSteps, items: programme.nextSteps,
-            icon: Icons.route_outlined, accent: AppTheme.studyBlue),
+            icon: Icons.route_outlined, accent: EducationTheme.blue),
         ],
       ),
     );
@@ -277,7 +278,7 @@ class _Reasons extends StatelessWidget {
         Expanded(child: Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: accent)))]),
       const SizedBox(height: 6),
       for (final item in items) Padding(padding: const EdgeInsets.only(bottom: 3),
-        child: SelectableText(item, style: const TextStyle(fontSize: 13, height: 1.5, color: AppTheme.studyInk))),
+        child: SelectableText(item, style: const TextStyle(fontSize: 13, height: 1.5, color: EducationTheme.ink))),
     ]),
   );
 }

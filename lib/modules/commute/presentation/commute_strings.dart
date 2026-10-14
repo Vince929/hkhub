@@ -10,15 +10,15 @@ class CommuteStrings {
   String _text(String hans, String hant, String en) => [hans, hant, en][_index];
 
   String get title => _text('港深通勤', '港深通勤', 'HK–Shenzhen commute');
-  String get direction => _text('深圳 → 香港', '深圳 → 香港', 'Shenzhen → Hong Kong');
+  String get direction => _text('深圳 ↔ 香港', '深圳 ↔ 香港', 'Shenzhen ↔ Hong Kong');
   String get selectPort => _text('从哪个口岸过关？', '從哪個口岸過關？', 'Which crossing today?');
-  String get queueTitle => _text('港方入境轮候', '港方入境輪候', 'Hong Kong immigration queues');
-  String get both => _text('两类并列', '兩類並列', 'Both groups');
-  String audience(String value) => value == 'resident'
-      ? _text('香港居民', '香港居民', 'HK residents')
-      : _text('访港旅客', '訪港旅客', 'Visitors');
-  String get audienceHint => _text('请选择对应身份；未选择时并列显示两类轮候。', '請選擇對應身分；未選擇時並列顯示兩類輪候。', 'Choose your group, or view both side by side.');
-  String get notice => _text('仅为港方手续的概括评估，不含深圳侧流程，也不代表全程过关时长。', '僅為港方手續的概括評估，不含深圳側流程，也不代表全程過關時長。', 'A general assessment of Hong Kong immigration only. Excludes Shenzhen formalities and total crossing time.');
+  String ports(int count) => _text('$count 个口岸', '$count 個口岸', '$count crossings');
+  String get updateInterval => _text('每 15 分钟更新', '每 15 分鐘更新', 'Updates every 15 minutes');
+  String get queueTitle => _text('口岸等候情况', '口岸等候情況', 'Border waiting conditions');
+  String directionName(String value) => value == 'arrival'
+      ? _text('入境', '入境', 'Arrival')
+      : _text('出境', '出境', 'Departure');
+  String get notice => _text('仅供参考，分别显示香港入境与出境轮候情况，不代表全程过关时长。', '僅供參考，分別顯示香港入境與出境輪候情況，不代表全程過關時長。', 'Reference only. Shows Hong Kong arrival and departure queues, not total crossing time.');
   String get source => _text('来源：香港入境事务处 · 标称每 15 分钟更新', '來源：香港入境事務處 · 標稱每 15 分鐘更新', 'Source: HK Immigration Department. Published update interval: 15 minutes.');
   String get refresh => _text('刷新', '重新整理', 'Refresh');
   String get retry => _text('重试', '重試', 'Retry');
@@ -26,8 +26,6 @@ class CommuteStrings {
   String get saveFailed => _text('本机偏好保存失败，请重试。', '本機偏好保存失敗，請重試。', 'Could not save this device preference. Please retry.');
   String get favorite => _text('收藏', '收藏', 'Save');
   String get unfavorite => _text('取消收藏', '取消收藏', 'Unsave');
-  String get sortQueue => _text('按有效轮候等级排序', '按有效輪候等級排序', 'Sort by available queue level');
-  String get favoriteFirst => _text('收藏置顶；排序不代表全程最快。', '收藏置頂；排序不代表全程最快。', 'Saved crossings first. This does not rank total journey time.');
   String mode(String mode) => mode == 'mtr' ? _text('港铁', '港鐵', 'MTR') : _text('巴士', '巴士', 'Bus');
   String get transitTitle => _text('香港侧主要接驳', '香港側主要接駁', 'Connections on the Hong Kong side');
   String get transitNotice => _text('港铁为本站开出时间；巴士为本站到站预报或原定班次。不是抵达目的地时间，也不保证赶得上。', '港鐵為本站開出時間；巴士為本站到站預報或原定班次。不是抵達目的地時間，也不保證趕得上。', 'MTR times are departures from this station. Bus times are arrivals here or scheduled services, not arrival at your destination. Connections are not guaranteed.');
@@ -38,8 +36,6 @@ class CommuteStrings {
   String get mapFailed => _text('无法打开地图，请按上车站名查询。', '無法開啟地圖，請按上車站名查詢。', 'Could not open the map. Search for the boarding stop name.');
   String get historyTitle => _text('近一周同时段参考', '近一週同時段參考', 'Same time, previous seven days');
   String get historyNotice => _text('前七个自然日同一香港时间窗。只比较等级，不比较精确分钟；节假日差异不作预测。', '前七個自然日同一香港時間窗。只比較等級，不比較精確分鐘；節假日差異不作預測。', 'The same Hong Kong time slot on the previous seven calendar days. Levels, not exact minutes; holiday differences are not forecasts.');
-  String get chooseForHistory => _text('选择身份后查看对应的七天比较。', '選擇身分後查看對應的七天比較。', 'Choose a group to see its seven-day comparison.');
-  String get accumulating => _text('数据积累中', '數據積累中', 'Building observation history');
   String get noCurrentSlot => _text('当前时间窗暂无有效观测，暂不生成对比结论。', '目前時間窗暫無有效觀測，暫不生成對比結論。', 'No valid observation for the current slot. No comparison is made.');
   String get refreshHistory => _text('时间窗已切换，请刷新比较。', '時間窗已切換，請重新整理比較。', 'The time slot changed. Refresh the comparison.');
   String coverage(int count) => _text('有效观测 $count/7 天', '有效觀測 $count/7 天', '$count/7 valid days');
@@ -70,10 +66,10 @@ class CommuteStrings {
     'missing' => _text('暂无数据', '暫無數據', 'No data'),
     _ => _text('尚未采集', '尚未採集', 'Not yet collected'),
   };
-  String wait(int code, String audience) {
-    final minutes = code == 0 ? (audience == 'resident' ? 15 : 30) : (audience == 'resident' ? 30 : 45);
-    return code == 2 ? _text('通常 $minutes 分钟或以上', '通常 $minutes 分鐘或以上', 'Generally $minutes minutes or more')
-        : _text('通常少于 $minutes 分钟', '通常少於 $minutes 分鐘', 'Generally under $minutes minutes');
+  String wait(int code) {
+    final minutes = code == 0 ? 30 : 45;
+    return code == 2 ? _text('$minutes 分钟或以上', '$minutes 分鐘或以上', '$minutes minutes or more')
+        : _text('少于 $minutes 分钟', '少於 $minutes 分鐘', 'Under $minutes minutes');
   }
   String operatorName(String value) => switch (value) {
     'MTR' => mode('mtr'),
@@ -88,11 +84,18 @@ class CommuteStrings {
   };
   String platform(String number) => _text('$number 站台', '$number 月台', 'Platform $number');
   String destination(String name) => _text('往 $name', '往 $name', 'To $name');
-  String fetched(DateTime value) => _text('最近获取 ${clock(value)}（香港时间）', '最近取得 ${clock(value)}（香港時間）', 'Last fetched ${clock(value)} (Hong Kong time)');
+  String fetched(DateTime value) => _text('最近更新 ${clock(value)}', '最近更新 ${clock(value)}', 'Updated ${clock(value)}');
   String clock(DateTime value) {
     final local = value.toUtc().add(const Duration(hours: 8));
     String two(int number) => '$number'.padLeft(2, '0');
     return '${two(local.month)}/${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
   }
   String timeOnly(DateTime value) => clock(value).split(' ').last;
+
+  // Single-direction nudge to the residency planner (D22); not a commute metric.
+  String get residencyHint => _text(
+    '通勤久了，别忘了永居进度',
+    '通勤久了，別忘了永居進度',
+    'Commuting a lot? Check your residency progress',
+  );
 }

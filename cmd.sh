@@ -16,6 +16,7 @@ Usage: ./cmd.sh [command] [Flutter args]
   web                  Run Chrome on localhost:8080 (matches backend CORS)
   devices              List available Flutter devices
   l10n                 Generate localization code from ARB files
+  icons                Regenerate every app icon and the splash logo from the sail mark
   apk                  Build a release APK (configure productionApiBaseUrl in Dart first)
   appbundle            Build a release Android App Bundle
   ipa                  Build a signed release IPA
@@ -122,6 +123,9 @@ case "$command" in
     ;;
   l10n)
     flutter_cmd gen-l10n
+    ;;
+  icons)
+    flutter_cmd test tool/generate_icons.dart
     ;;
   apk|appbundle|ipa)
     build_release "$command" "$@"

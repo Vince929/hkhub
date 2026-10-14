@@ -6,10 +6,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/l10n/generated/app_localizations.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/theme/tool_accents.dart';
 import '../data/home_tools.dart';
 
 // Add an ID only when its native page actually exists. Unknown IDs are not executable.
-const nativeToolRoutes = <String, String>{'education': '/education', 'commute': '/commute'};
+const nativeToolRoutes = <String, String>{
+  'education': '/education', 'commute': '/commute', 'residency': '/residency',
+};
 
 bool supportsNativeTool(HomeTool tool) => nativeToolRoutes.containsKey(tool.featureId);
 
@@ -48,7 +51,8 @@ class ToolGroupGrid extends StatelessWidget {
           ),
           itemCount: group.items.length,
           itemBuilder: (context, index) => _ToolTile(
-            key: ValueKey(group.items[index].id), tool: group.items[index],
+            key: ValueKey(group.items[index].id),
+            tool: group.items[index], groupId: group.id,
           ),
         );
       }),
@@ -57,15 +61,20 @@ class ToolGroupGrid extends StatelessWidget {
 }
 
 class _ToolTile extends ConsumerWidget {
-  const _ToolTile({super.key, required this.tool});
+  const _ToolTile({super.key, required this.tool, required this.groupId});
 
   final HomeTool tool;
+
+  /// Colour encodes the group, not the tool, so growing the catalogue never
+  /// runs out of distinguishable colours (see `docs/UI风格规范.md` §4).
+  final String groupId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = AppLocalizations.of(context);
     final supported = supportsNativeTool(tool);
-    final (icon, color) = _toolVisual(tool.icon);
+    final icon = _toolIcon(tool.icon);
+    final color = ToolAccents.forGroup(groupId);
     return Semantics(
       button: true,
       label: tool.title,
@@ -78,6 +87,11 @@ class _ToolTile extends ConsumerWidget {
           onTap: () async {
             final route = nativeToolRoutes[tool.featureId];
             if (route != null) {
+              // Drop the search field's focus before leaving home. Otherwise the
+              // home route's focus scope remembers it, and returning via the
+              // AppBar back button restores focus (and pops the keyboard);
+              // a back gesture happens to skip that restoration, a button does not.
+              FocusManager.instance.primaryFocus?.unfocus();
               // Native feature routes are compiled into the app, never supplied by the server.
               await context.push(route);
               if (context.mounted) await ref.read(homeToolsProvider.notifier).refresh();
@@ -119,13 +133,15 @@ class _ToolTile extends ConsumerWidget {
   }
 }
 
-(IconData, Color) _toolVisual(String icon) => switch (icon) {
-  'train' => (Icons.train_outlined, AppTheme.harborBlue),
-  'event_note' => (Icons.event_note_outlined, AppTheme.ferryGreen),
-  'school' => (Icons.school_outlined, const Color(0xFF6855A0)),
-  'storefront' => (Icons.storefront_outlined, AppTheme.signalAmber),
-  'travel' => (Icons.travel_explore_outlined, AppTheme.harborBlue),
-  'article' => (Icons.article_outlined, AppTheme.ferryGreen),
-  'calculate' => (Icons.calculate_outlined, AppTheme.ferryGreen),
-  _ => (Icons.apps_outlined, AppTheme.harborBlue),
+/// Maps a catalog icon token to a line icon. Colour comes from
+/// [ToolAccents.forGroup], never from the icon itself.
+IconData _toolIcon(String icon) => switch (icon) {
+  'train' => Icons.train_outlined,
+  'event_note' => Icons.event_note_outlined,
+  'school' => Icons.school_outlined,
+  'storefront' => Icons.storefront_outlined,
+  'travel' => Icons.travel_explore_outlined,
+  'article' => Icons.article_outlined,
+  'calculate' => Icons.calculate_outlined,
+  _ => Icons.apps_outlined,
 };

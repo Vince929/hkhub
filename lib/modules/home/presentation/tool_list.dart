@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/l10n/generated/app_localizations.dart';
 import '../../../app/providers.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/widgets/hk_sail_mark.dart';
 import '../data/home_tools.dart';
 import 'tool_grid.dart';
 
@@ -195,8 +196,8 @@ class _ToolListState extends ConsumerState<ToolList> with WidgetsBindingObserver
     return Center(child: SingleChildScrollView(child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        if (loading) const CircularProgressIndicator(strokeWidth: 2)
-        else const Icon(Icons.cloud_off_outlined, size: 36, color: AppTheme.harborBlue),
+        if (loading) const HkSailMark(size: 44, animate: true)
+        else const Icon(Icons.cloud_off_outlined, size: 36, color: AppTheme.ferryGreen),
         const SizedBox(height: 16),
         Text(message, textAlign: TextAlign.center),
         if (retry) Padding(

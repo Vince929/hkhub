@@ -1,5 +1,8 @@
 const borderCodes = {'LWS', 'LSC', 'SBC'};
-const audiences = {'resident', 'visitor'};
+const directions = {'arrival', 'departure'};
+
+/// Upstream publishes residents and visitors separately; the app shows visitors.
+const queueAudience = 'visitor';
 
 Map object(Object? value) {
   if (value is! Map) throw const FormatException('Invalid commute object');
@@ -70,7 +73,11 @@ class Border {
       return raw as String;
     });
     final queuesMap = object(value['queues']);
-    queues = {for (final audience in audiences) audience: QueueStatus(queuesMap[audience])};
+    final departureMap = object(value['departure_queues']);
+    queues = {
+      'arrival': QueueStatus(queuesMap[queueAudience]),
+      'departure': QueueStatus(departureMap[queueAudience]),
+    };
   }
   late final String code;
   late final String name;
@@ -110,6 +117,8 @@ class HistoryData {
     serverTime = requiredTime(value['server_time']);
     slotStart = text(value, 'slot_start');
     slotEnd = text(value, 'slot_end');
+    direction = text(value, 'direction');
+    if (!directions.contains(direction)) throw const FormatException('Invalid commute direction');
     current = QueueStatus(value['current']);
     days = items(value, 'days', HistoryDay.new);
     final count = value['valid_count'];
@@ -122,6 +131,7 @@ class HistoryData {
   late final DateTime serverTime;
   late final String slotStart;
   late final String slotEnd;
+  late final String direction;
   late final QueueStatus current;
   late final List<HistoryDay> days;
   late final int validCount;

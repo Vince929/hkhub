@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_theme.dart';
+import '../../../app/widgets/hk_sail_mark.dart';
 import '../data/commute_models.dart';
 import '../data/commute_providers.dart';
+import '../theme/commute_theme.dart';
 import 'commute_refresh.dart';
 import 'commute_strings.dart';
 import 'commute_widgets.dart';
@@ -18,8 +20,6 @@ class CommuteScreen extends ConsumerStatefulWidget {
 
 class _CommuteScreenState extends ConsumerState<CommuteScreen>
     with WidgetsBindingObserver, CommuteRefresh<CommuteScreen> {
-  bool _sortQueue = false;
-
   @override
   void refreshCommute() {
     if (!ref.read(bordersProvider).isLoading) ref.invalidate(bordersProvider);
@@ -31,18 +31,11 @@ class _CommuteScreenState extends ConsumerState<CommuteScreen>
   }
 
   List<Border> _ordered(BordersData data, CommutePreferences preferences) {
-    int rank(Border border) {
-      if (!_sortQueue || preferences.audience == null) return 0;
-      final queue = border.queues[preferences.audience]!;
-      return queue.reasonAt(data.now) == 'available' ? queue.code! : 3;
-    }
     final result = [...data.borders];
     result.sort((left, right) {
       final saved = (preferences.borders.contains(right.code) ? 1 : 0) -
           (preferences.borders.contains(left.code) ? 1 : 0);
       if (saved != 0) return saved;
-      final level = rank(left).compareTo(rank(right));
-      if (level != 0) return level;
       return ['LWS', 'LSC', 'SBC'].indexOf(left.code).compareTo(['LWS', 'LSC', 'SBC'].indexOf(right.code));
     });
     return result;
@@ -62,17 +55,9 @@ class _CommuteScreenState extends ConsumerState<CommuteScreen>
         constraints: const BoxConstraints(maxWidth: 680),
         child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.all(20),
           children: [
-            Text(copy.direction, style: const TextStyle(color: AppTheme.ferryGreen, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Text(copy.selectPort, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: AppTheme.ink)),
+            CommuteHeroCard(title: copy.selectPort,
+              tags: [copy.ports(borderCodes.length), copy.updateInterval]),
             const SizedBox(height: 18),
-            const AudiencePicker(),
-            const SizedBox(height: 14),
-            SwitchListTile.adaptive(contentPadding: EdgeInsets.zero,
-              title: Text(copy.sortQueue), subtitle: Text(copy.favoriteFirst),
-              value: _sortQueue && preferences.audience != null,
-              onChanged: preferences.audience == null ? null : (value) => setState(() => _sortQueue = value)),
-            const SizedBox(height: 10),
             if (data.isLoading) const LinearProgressIndicator(minHeight: 2),
             data.when(
               data: (value) => Column(children: [
@@ -80,14 +65,45 @@ class _CommuteScreenState extends ConsumerState<CommuteScreen>
                   border: border, now: value.now, preferences: preferences),
               ]),
               error: (_, _) => CommuteFailure(retry: refreshCommute),
-              loading: () => const Padding(padding: EdgeInsets.all(40), child: Center(child: CircularProgressIndicator())),
+              loading: () => const Padding(padding: EdgeInsets.all(40), child: HkSailLoader(size: 52)),
             ),
             const SizedBox(height: 8),
             Text(copy.source, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 8),
             Text(copy.notice, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 16),
+            const _ResidencyHint(),
           ]),
       ))),
+    );
+  }
+}
+
+/// Light, single-direction nudge to the residency planner (D22).
+class _ResidencyHint extends StatelessWidget {
+  const _ResidencyHint();
+
+  @override
+  Widget build(BuildContext context) {
+    final copy = CommuteStrings(Localizations.localeOf(context));
+    final radius = BorderRadius.circular(AppTheme.cardRadius);
+    return Material(
+      color: CommuteTheme.accent.withValues(alpha: 0.08),
+      borderRadius: radius,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/residency'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(children: [
+            const Icon(Icons.event_note_rounded, size: 20, color: CommuteTheme.accent),
+            const SizedBox(width: 10),
+            Expanded(child: Text(copy.residencyHint, style: const TextStyle(
+              fontSize: 13, height: 1.4, color: AppTheme.ink))),
+            const Icon(Icons.chevron_right, color: CommuteTheme.accent),
+          ]),
+        ),
+      ),
     );
   }
 }
@@ -102,9 +118,12 @@ class _BorderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final copy = CommuteStrings(Localizations.localeOf(context));
     return Padding(padding: const EdgeInsets.only(bottom: 14), child: Material(
-      color: Colors.white, borderRadius: BorderRadius.circular(18), clipBehavior: Clip.antiAlias,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(side: const BorderSide(color: AppTheme.surfaceLine),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(onTap: () => context.push('/commute/${border.code}'), child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 12, 12, 18),
+        padding: const EdgeInsets.fromLTRB(18, 14, 12, 18),
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           Row(children: [
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -116,18 +135,17 @@ class _BorderCard extends ConsumerWidget {
               onPressed: preferences.busy ? null : () => savePreference(context,
                 () => ref.read(commutePreferencesProvider.notifier).toggleBorder(border.code))),
           ]),
-          const Divider(height: 22),
-          Text(copy.queueTitle, style: const TextStyle(color: AppTheme.harborBlue, fontWeight: FontWeight.w600)),
-          BorderQueues(border: border, audience: preferences.audience, now: now),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
+          BorderQueues(border: border, now: now),
+          const SizedBox(height: 14),
           Row(children: [
             Expanded(child: Wrap(spacing: 12, children: [
               for (final mode in border.modes) Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(mode == 'mtr' ? Icons.train_outlined : Icons.directions_bus_outlined, size: 18, color: AppTheme.harborBlue),
+                Icon(mode == 'mtr' ? Icons.train_outlined : Icons.directions_bus_outlined, size: 18, color: CommuteTheme.accent),
                 const SizedBox(width: 5), Text(copy.mode(mode)),
               ]),
             ])),
-            const Icon(Icons.chevron_right, color: AppTheme.harborBlue),
+            const Icon(Icons.chevron_right, color: CommuteTheme.accent),
           ]),
         ]),
       )),
