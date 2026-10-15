@@ -39,8 +39,8 @@ class AppConfig {
     final defaultLocalUrl = localFallback.isNotEmpty
         ? localFallback
         : (!kIsWeb && defaultTargetPlatform == TargetPlatform.android
-            ? 'http://10.0.2.2:8001/api/'
-            : 'http://localhost:8001/api/');
+            ? 'http://10.0.2.2:8000/api/'
+            : 'http://localhost:8000/api/');
     final localUrl = localApiBaseUrl.trim();
     return AppConfig(
       environment: environment,

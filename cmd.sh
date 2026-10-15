@@ -32,7 +32,7 @@ Switch configured environments at runtime in Settings; the choice is saved on th
 Unconfigured test/production environments are disabled. Production requires HTTPS.
 Real devices: set localApiBaseUrl to your computer's reachable address, including /api/.
 Empty localApiBaseUrl uses the device command fallback; explicit Dart URLs take priority.
-.env only supplies launch tools/options: APP_ENV, API_PORT (default 8001), FLUTTER_BIN, ADB_BIN.
+.env only supplies launch tools/options: APP_ENV, API_PORT (default 8000), FLUTTER_BIN, ADB_BIN.
 Shell variables override .env. APP_ENV is optional; changes to launch options require relaunch.
 App configuration is public. Never embed secrets in Dart, .env assets or --dart-define.
 EOF
@@ -54,7 +54,7 @@ load_launch_options() {
   local flutter="${FLUTTER_BIN-}" adb="${ADB_BIN-}"
   if [[ -f .env ]]; then source .env; fi
   APP_ENV="${initial:-${APP_ENV:-}}"
-  API_PORT="${port:-${API_PORT:-8001}}"
+  API_PORT="${port:-${API_PORT:-8000}}"
   FLUTTER_BIN="${flutter:-${FLUTTER_BIN:-flutter}}"
   ADB_BIN="${adb:-${ADB_BIN:-adb}}"
 }
@@ -102,21 +102,21 @@ case "$command" in
     run_app '' "$@"
     ;;
   android)
-    run_app "http://10.0.2.2:${API_PORT:-8001}/api/" "$@"
+    run_app "http://10.0.2.2:${API_PORT:-8000}/api/" "$@"
     ;;
   usb)
     adb_bin="${ADB_BIN:-adb}"
     command -v "$adb_bin" >/dev/null || { printf 'adb is not on PATH.\n' >&2; exit 1; }
     device_id="${1:-}"
     if [[ -n "$device_id" ]]; then shift; else device_id="$("$adb_bin" -d get-serialno)"; fi
-    "$adb_bin" -s "$device_id" reverse "tcp:${API_PORT:-8001}" "tcp:${API_PORT:-8001}"
-    run_app "http://127.0.0.1:${API_PORT:-8001}/api/" -d "$device_id" "$@"
+    "$adb_bin" -s "$device_id" reverse "tcp:${API_PORT:-8000}" "tcp:${API_PORT:-8000}"
+    run_app "http://127.0.0.1:${API_PORT:-8000}/api/" -d "$device_id" "$@"
     ;;
   ios)
-    run_app "http://localhost:${API_PORT:-8001}/api/" "$@"
+    run_app "http://localhost:${API_PORT:-8000}/api/" "$@"
     ;;
   web)
-    run_app "http://localhost:${API_PORT:-8001}/api/" -d chrome --web-port 8080 "$@"
+    run_app "http://localhost:${API_PORT:-8000}/api/" -d chrome --web-port 8080 "$@"
     ;;
   devices)
     flutter_cmd devices "$@"
