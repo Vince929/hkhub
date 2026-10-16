@@ -20,7 +20,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/education', builder: (context, state) => const EducationScreen()),
       GoRoute(path: '/business', builder: (context, state) => const CompanyScreen(), routes: [
         GoRoute(path: 'reports/:reportId/companies', builder: (context, state) => CompanyListScreen(
-          reportId: state.pathParameters['reportId']!, topicId: state.uri.queryParameters['topic_id'])),
+          reportId: state.pathParameters['reportId']!)),
       ]),
       GoRoute(path: '/residency', builder: (context, state) => const ResidencyScreen()),
       GoRoute(path: '/rent', builder: (context, state) => const RentScreen()),

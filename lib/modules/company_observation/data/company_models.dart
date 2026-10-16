@@ -85,65 +85,24 @@ class CompanySource {
   late final String? publishedDate;
 }
 
-class CompanyTopic {
-  CompanyTopic(Object? raw) {
-    final value = companyObject(raw);
-    id = companyText(value, 'topic_id');
-    reportId = companyText(value, 'report_id');
-    title = companyText(value, 'title');
-    explanation = companyText(value, 'explanation');
-    count = companyCount(value, 'company_count')!;
-    language = companyText(value, 'content_language');
-    fallback = value['language_fallback'] == true;
-    terms = companyItems(value, 'terms', (item) {
-      if (item is! String) throw const FormatException('Invalid company term');
-      return item;
-    });
-  }
-  late final String id, reportId, title, explanation, language;
-  late final int count;
-  late final bool fallback;
-  late final List<String> terms;
-}
-
 class CompanyOverview {
   CompanyOverview(Object? raw) {
     final value = companyObject(raw);
     period = CompanyPeriod(raw);
     observedCount = companyCount(value, 'observed_company_count')!;
     totalCount = companyCount(value, 'total_company_count', optional: true);
-    unknownCount = companyCount(value, 'unknown_company_count', optional: true);
-    summary = value['summary'] as String?;
-    language = value['content_language'] as String?;
-    fallback = value['language_fallback'] == true;
-    errorCode = value['error_code'] as String?;
-    analysisAttemptCount = companyCount(value, 'analysis_attempt_count', optional: true);
-    analysisMaxAttempts = companyCount(value, 'analysis_max_attempts', optional: true);
-    analysisRetryAfter = value['analysis_retry_after'] as String?;
-    analysisRetryAllowed = value['analysis_retry_allowed'] as bool?;
-    findings = companyItems(value, 'findings', (item) {
-      if (item is! String) throw const FormatException('Invalid company finding');
-      return item;
-    });
-    topics = companyItems(value, 'topics', CompanyTopic.new);
     sources = companyItems(value, 'sources', CompanySource.new);
     missing = companyItems(value, 'missing_resources', (item) => companyText(companyObject(item), 'reason_code'));
-    if (topics.any((topic) => topic.reportId != period.reportId) ||
-        (period.dataStatus != 'complete' && totalCount != null) ||
+    if ((period.dataStatus != 'complete' && totalCount != null) ||
         (period.dataStatus == 'complete' && totalCount != observedCount)) {
       throw const FormatException('Inconsistent company snapshot');
     }
   }
   late final CompanyPeriod period;
   late final int observedCount;
-  late final int? totalCount, unknownCount;
-  late final String? summary, language, errorCode, analysisRetryAfter;
-  late final int? analysisAttemptCount, analysisMaxAttempts;
-  late final bool? analysisRetryAllowed;
-  late final bool fallback;
-  late final List<String> findings, missing;
-  late final List<CompanyTopic> topics;
+  late final int? totalCount;
   late final List<CompanySource> sources;
+  late final List<String> missing;
 }
 
 class ObservedCompany {
@@ -161,11 +120,9 @@ class ObservedCompany {
       throw const FormatException('Invalid company registration event');
     }
     source = CompanySource(value['source']);
-    evidence = companyItems(value, 'evidence', (item) => companyText(companyObject(item), 'text'));
   }
   late final String key, nameEn, nameZh, identifier, identifierType, date, eventType;
   late final CompanySource source;
-  late final List<String> evidence;
 }
 
 class CompanyPage {

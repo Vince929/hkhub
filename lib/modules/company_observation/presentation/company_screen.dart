@@ -50,7 +50,6 @@ class _CompanyScreenState extends ConsumerState<CompanyScreen> {
       constraints: const BoxConstraints(maxWidth: 680),
       child: ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.all(20), children: [
         Text(copy.intro, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, color: AppTheme.ink)),
-        const SizedBox(height: 12), Text(copy.notice, style: const TextStyle(fontSize: 13, height: 1.5)),
         const SizedBox(height: 18),
         Wrap(spacing: 8, children: [for (final type in ['week', 'month', 'year']) ChoiceChip(
           label: Text(copy.periodType(type)), selected: type == _type,
@@ -120,40 +119,6 @@ class CompanyOverviewContent extends StatelessWidget {
             title: Text(copy.source), children: [for (final source in data.sources) CompanySourceTile(source: source)])],
       ])),
       const SizedBox(height: 18),
-      if (complete) CompanyPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(copy.summaryTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 12),
-        if (data.fallback) ...[Text(copy.languageFallback, style: const TextStyle(fontSize: 12)), const SizedBox(height: 8)],
-        Text(data.summary ?? copy.analysis(data.period.analysisStatus), style: const TextStyle(height: 1.6)),
-        if (data.period.analysisStatus == 'failed') ...[
-          const SizedBox(height: 10),
-          Text(copy.analysisReason(data.errorCode), style: const TextStyle(height: 1.5, color: AppTheme.signalAmber)),
-          const SizedBox(height: 8),
-          if (data.analysisAttemptCount != null && data.analysisMaxAttempts != null)
-            Text(copy.analysisAttempts(data.analysisAttemptCount!, data.analysisMaxAttempts!)),
-          if (data.analysisRetryAllowed != null) Text(
-            data.analysisRetryAllowed == false ? copy.analysisStopped
-              : data.analysisRetryAfter != null ? copy.analysisRetryAt(data.analysisRetryAfter!)
-              : copy.analysisQueuedRetry,
-            style: const TextStyle(fontSize: 13, height: 1.5)),
-          const SizedBox(height: 8),
-          SelectableText(copy.analysisDiagnostic(data.period.reportId, data.errorCode),
-            style: const TextStyle(fontSize: 12, color: AppTheme.levelNeutral)),
-        ],
-        for (final finding in data.findings) Padding(padding: const EdgeInsets.only(top: 10),
-          child: Text(finding, style: const TextStyle(height: 1.5))),
-        if (data.unknownCount != null) Padding(padding: const EdgeInsets.only(top: 12),
-          child: Text(copy.unknown(data.unknownCount!), style: const TextStyle(fontSize: 13))),
-      ])),
-      const SizedBox(height: 18),
-      if (data.period.analysisStatus == 'published') ...[
-        Text(copy.keywords, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8), Text(copy.overlap, style: const TextStyle(fontSize: 12, height: 1.5)),
-        const SizedBox(height: 12),
-        if (data.topics.isEmpty) Text(copy.noThemes),
-        for (final topic in data.topics) CompanyTopicTile(topic: topic,
-          onTap: () => context.push('/business/reports/${data.period.reportId}/companies?topic_id=${Uri.encodeQueryComponent(topic.id)}')),
-      ],
       FilledButton.icon(onPressed: () => context.push('/business/reports/${data.period.reportId}/companies'),
         icon: const Icon(Icons.business_outlined), label: Text(copy.allCompanies)),
     ]);
