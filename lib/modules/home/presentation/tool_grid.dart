@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/l10n/generated/app_localizations.dart';
@@ -60,7 +59,7 @@ class ToolGroupGrid extends StatelessWidget {
   }
 }
 
-class _ToolTile extends ConsumerWidget {
+class _ToolTile extends StatelessWidget {
   const _ToolTile({super.key, required this.tool, required this.groupId});
 
   final HomeTool tool;
@@ -70,7 +69,7 @@ class _ToolTile extends ConsumerWidget {
   final String groupId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     final supported = supportsNativeTool(tool);
     final icon = _toolIcon(tool.icon);
@@ -84,7 +83,7 @@ class _ToolTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(14),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () async {
+          onTap: () {
             final route = nativeToolRoutes[tool.featureId];
             if (route != null) {
               // Drop the search field's focus before leaving home. Otherwise the
@@ -92,9 +91,7 @@ class _ToolTile extends ConsumerWidget {
               // AppBar back button restores focus (and pops the keyboard);
               // a back gesture happens to skip that restoration, a button does not.
               FocusManager.instance.primaryFocus?.unfocus();
-              // Native feature routes are compiled into the app, never supplied by the server.
-              await context.push(route);
-              if (context.mounted) await ref.read(homeToolsProvider.notifier).refresh();
+              context.push(route);
             } else {
               ScaffoldMessenger.of(context)
                 ..hideCurrentSnackBar()

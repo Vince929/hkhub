@@ -2,13 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/l10n/generated/app_localizations.dart';
 import '../../../app/theme/app_theme.dart';
 import '../../../app/widgets/hk_sail_mark.dart';
-import '../data/home_tools.dart';
 import 'tool_list.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -60,11 +58,11 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _BrandHeader extends ConsumerWidget {
+class _BrandHeader extends StatelessWidget {
   const _BrandHeader();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final strings = AppLocalizations.of(context);
     return ColoredBox(
       color: AppTheme.ferryGreen,
@@ -90,13 +88,12 @@ class _BrandHeader extends ConsumerWidget {
             IconButton(
               tooltip: strings.settingsTitle,
               iconSize: 28,
-              onPressed: () async {
+              onPressed: () {
                 // Same as the tool tiles: leaving home must not leave the search
                 // field as the route's remembered focus, or the back button would
                 // restore it on return.
                 FocusManager.instance.primaryFocus?.unfocus();
-                await context.push('/settings');
-                if (context.mounted) await ref.read(homeToolsProvider.notifier).refresh();
+                context.push('/settings');
               },
               icon: const Icon(Icons.settings_outlined, color: Colors.white),
             ),
