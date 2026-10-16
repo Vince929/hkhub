@@ -10,8 +10,9 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// The icon is an **external asset**: `assets/images/app_icon.png` — a 1024px
 /// square, brand field + white sail mark. This tool never draws it. It reads
-/// that one file and emits each platform size as a pure downscale, so Android
-/// and iOS are literally the same image at different resolutions.
+/// that one file and emits each platform size as a pure downscale. Android's
+/// adaptive drawable adds an inset to compensate for its 108dp layer / 72dp
+/// viewport, preserving the master's scale before the platform mask is applied.
 ///
 /// Re-branding therefore means: replace the PNG, then run
 ///
@@ -144,9 +145,10 @@ void main() {
           await _scale(source, entry.value, entry.value));
     }
 
-    // Android adaptive-icon foreground layers (108dp canvas per density). The
-    // background layer is the same brand colour (see res/values/colors.xml), so
-    // feeding this full-bleed square here is seamless.
+    // Android adaptive-icon foreground layers (108dp canvas per density).
+    // ic_launcher_adaptive_foreground.xml insets the master into the central
+    // 72dp viewport; do not add padding here as well. The separate background
+    // layer fills the outside with the brand colour (see res/values/colors.xml).
     const foreground = {
       'mdpi': 108, 'hdpi': 162, 'xhdpi': 216, 'xxhdpi': 324, 'xxxhdpi': 432,
     };
