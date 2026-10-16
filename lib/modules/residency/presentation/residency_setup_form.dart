@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../app/widgets/hk_date_field.dart';
-import '../../../app/widgets/hk_selection_field.dart';
+import '../../../app/widgets/hk_dropdown_field.dart';
 import '../data/residency_models.dart';
 import '../theme/residency_theme.dart';
 import 'residency_strings.dart';
@@ -90,8 +90,8 @@ class _ResidencySetupFormState extends State<ResidencySetupForm> {
           enabled: !busy,
           onChanged: (value) => setState(() { _startDate = value; _error = null; }),
         )),
-        _label(strings.visaTypeLabel, HkSelectionField(
-          label: strings.visaTypeLabel,
+        _label(strings.visaTypeLabel, HkDropdownField(
+          label: strings.visaTypeLabel, showLabel: false,
           value: _visaType,
           enabled: !busy,
           items: {for (final key in residencyVisaTypes) key: strings.visaName(key)},

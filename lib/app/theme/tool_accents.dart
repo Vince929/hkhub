@@ -54,6 +54,7 @@ abstract final class ToolAccents {
     'commute': jade,
     'residency': violet,
     'education': indigo,
+    'business': amber,
   };
 
   /// Accent for a home-grid **group**. Colour encodes the group, not the tool,

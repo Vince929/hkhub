@@ -25,7 +25,7 @@ class AppConfig {
   // Empty LOCAL uses the launch command's fallback or the platform default.
   static String get localApiBaseUrl => 'http://localhost:8000/api/';
   static String get testApiBaseUrl => 'http://10.170.182.126:8000/api/';
-  static String get productionApiBaseUrl => 'https://10.170.182.126:8000/api/';
+  static String get productionApiBaseUrl => 'https://api.hkhub.happymac.club/api/';
   static String get initialEnvironment => kReleaseMode ? 'production' : 'local';
 
   factory AppConfig.fromEnvironment() {

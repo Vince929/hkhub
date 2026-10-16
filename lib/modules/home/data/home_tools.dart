@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
+
 import '../../../app/l10n/generated/app_localizations.dart';
+import '../../company_observation/presentation/company_strings.dart';
 
 class HomeTool {
   const HomeTool({
@@ -41,6 +44,10 @@ class HomeTools {
   // Entry identities, grouping and ordering ship with the app, not the API.
   factory HomeTools.localized(AppLocalizations strings) {
     final english = strings.localeName == 'en';
+    final companyCopy = CompanyStrings(english ? const Locale('en')
+        : strings.localeName.startsWith('yue') || strings.localeName == 'zh_Hant'
+            ? const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')
+            : const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'));
     final simplified = strings.localeName == 'zh_Hans' || strings.localeName == 'zh';
     return HomeTools(groups: [
       HomeToolGroup(
@@ -79,10 +86,21 @@ class HomeTools {
         title: english ? 'Utilities' : simplified ? '实用工具' : '實用工具',
         items: [
           HomeTool(
+            id: 'rent',
+            featureId: 'rent',
+            title: english ? 'Rental trends' : simplified ? '租金趋势' : '租金趨勢',
+            description: english
+                ? 'Private domestic rental indices and average rents by area class'
+                : simplified ? '私人住宅租金指数、分面积类别平均租金与历史变化'
+                    : '私人住宅租金指數、分面積類別平均租金與歷史變化',
+            icon: 'rent',
+            aliases: ['RVD', '租房', '租屋', 'rent'],
+          ),
+          HomeTool(
             id: 'business',
             featureId: 'business',
-            title: strings.businessTitle,
-            description: strings.businessDescription,
+            title: companyCopy.shortTitle,
+            description: companyCopy.description,
             icon: 'storefront',
           ),
         ],

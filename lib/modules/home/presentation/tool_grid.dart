@@ -11,6 +11,8 @@ import '../data/home_tools.dart';
 // Add an ID only when its native page actually exists. Unknown IDs are not executable.
 const nativeToolRoutes = <String, String>{
   'education': '/education', 'commute': '/commute', 'residency': '/residency',
+  'business': '/business',
+  'rent': '/rent',
 };
 
 bool supportsNativeTool(HomeTool tool) => nativeToolRoutes.containsKey(tool.featureId);
@@ -137,6 +139,7 @@ IconData _toolIcon(String icon) => switch (icon) {
   'event_note' => Icons.event_note_outlined,
   'school' => Icons.school_outlined,
   'storefront' => Icons.storefront_outlined,
+  'rent' => Icons.show_chart_outlined,
   'travel' => Icons.travel_explore_outlined,
   'article' => Icons.article_outlined,
   'calculate' => Icons.calculate_outlined,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
 import '../../../app/widgets/hk_form_input.dart';
-import '../../../app/widgets/hk_selection_field.dart';
+import '../../../app/widgets/hk_dropdown_field.dart';
 import '../theme/education_theme.dart';
 import 'education_strings.dart';
 
@@ -286,8 +286,8 @@ class _EducationFormState extends State<EducationForm> {
   }
 
   Widget _choice(String label, String value, Map<String, String> items, ValueChanged<String> changed) {
-    return _label(label, HkSelectionField(
-      label: label, value: value, items: items,
+    return _label(label, HkDropdownField(
+      label: label, showLabel: false, value: value, items: items,
       enabled: !widget.busy, onChanged: changed,
     ));
   }

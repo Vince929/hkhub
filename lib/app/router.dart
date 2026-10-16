@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../modules/commute/data/commute_models.dart';
 import '../modules/commute/presentation/commute_detail_screen.dart';
 import '../modules/commute/presentation/commute_screen.dart';
+import '../modules/company_observation/presentation/company_list_screen.dart';
+import '../modules/company_observation/presentation/company_screen.dart';
 import '../modules/education/presentation/education_screen.dart';
 import '../modules/home/presentation/home_screen.dart';
 import '../modules/residency/presentation/residency_screen.dart';
+import '../modules/rent/presentation/rent_screen.dart';
 import '../modules/settings/presentation/settings_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -15,7 +18,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
       GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
       GoRoute(path: '/education', builder: (context, state) => const EducationScreen()),
+      GoRoute(path: '/business', builder: (context, state) => const CompanyScreen(), routes: [
+        GoRoute(path: 'reports/:reportId/companies', builder: (context, state) => CompanyListScreen(
+          reportId: state.pathParameters['reportId']!, topicId: state.uri.queryParameters['topic_id'])),
+      ]),
       GoRoute(path: '/residency', builder: (context, state) => const ResidencyScreen()),
+      GoRoute(path: '/rent', builder: (context, state) => const RentScreen()),
       GoRoute(path: '/commute', builder: (context, state) => const CommuteScreen(), routes: [
         GoRoute(path: ':code', builder: (context, state) {
           final code = state.pathParameters['code'];
