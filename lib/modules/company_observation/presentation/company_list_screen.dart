@@ -103,6 +103,9 @@ class _CompanyPageSectionState extends ConsumerState<_CompanyPageSection> {
     final key = (widget.reportId, widget.topicId, widget.query, widget.cursor);
     final page = ref.watch(companyPageProvider(key));
     return page.when(data: (value) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (widget.cursor == null) Padding(padding: const EdgeInsets.only(bottom: 12),
+        child: Text(value.includesRedomiciliation ? copy.populationNotice : copy.legacyPopulationNotice,
+          style: const TextStyle(fontSize: 13, height: 1.5))),
       if (value.companies.isEmpty && widget.cursor == null)
         CompanyPanel(child: Text(widget.query.isEmpty ? copy.noCompanies : copy.noResults)),
       for (final company in value.companies) _CompanyRow(
@@ -134,7 +137,8 @@ class _CompanyRow extends StatelessWidget {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           if (company.nameEn.isNotEmpty) Text(company.nameEn, style: const TextStyle(fontSize: 14, height: 1.4)),
         ]),
-        subtitle: Padding(padding: const EdgeInsets.only(top: 8), child: Text(copy.registered(company.date))),
+        subtitle: Padding(padding: const EdgeInsets.only(top: 8), child: Text(copy.registered(company.date,
+          includesRedomiciliation: company.eventType == 'incorporation_or_redomiciliation'))),
         children: [
           Align(alignment: Alignment.centerLeft,
             child: SelectableText('${company.identifierType.toUpperCase()}: ${company.identifier}')),

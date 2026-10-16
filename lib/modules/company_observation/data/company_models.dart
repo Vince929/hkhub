@@ -39,13 +39,19 @@ class CompanyPeriod {
     type = companyText(value, 'period_type');
     dataStatus = companyText(value, 'data_status');
     analysisStatus = companyText(value, 'analysis_status');
+    populationScope = value.containsKey('population_scope')
+        ? companyText(value, 'population_scope') : 'incorporation';
+    if (!{'incorporation', 'incorporation_and_redomiciliation'}.contains(populationScope)) {
+      throw const FormatException('Invalid company population scope');
+    }
     if (!{'week', 'month', 'year'}.contains(type) ||
         !{'complete', 'partial', 'unavailable'}.contains(dataStatus) ||
         !{'pending', 'running', 'published', 'failed', 'not_configured', 'not_needed', 'superseded'}.contains(analysisStatus)) {
       throw const FormatException('Invalid company period status');
     }
   }
-  late final String reportId, start, end, type, dataStatus, analysisStatus;
+  late final String reportId, start, end, type, dataStatus, analysisStatus, populationScope;
+  bool get includesRedomiciliation => populationScope == 'incorporation_and_redomiciliation';
 }
 
 class CompanyPeriods {
@@ -148,11 +154,16 @@ class ObservedCompany {
     nameZh = companyText(value, 'name_zh');
     identifier = companyText(value, 'identifier_value');
     identifierType = companyText(value, 'identifier_type');
-    date = companyDate(value, 'incorporation_date');
+    date = companyDate(value, value.containsKey('registration_date')
+        ? 'registration_date' : 'incorporation_date');
+    eventType = value.containsKey('event_type') ? companyText(value, 'event_type') : 'incorporation';
+    if (!{'incorporation', 'incorporation_or_redomiciliation'}.contains(eventType)) {
+      throw const FormatException('Invalid company registration event');
+    }
     source = CompanySource(value['source']);
     evidence = companyItems(value, 'evidence', (item) => companyText(companyObject(item), 'text'));
   }
-  late final String key, nameEn, nameZh, identifier, identifierType, date;
+  late final String key, nameEn, nameZh, identifier, identifierType, date, eventType;
   late final CompanySource source;
   late final List<String> evidence;
 }
@@ -162,9 +173,15 @@ class CompanyPage {
     final value = companyObject(raw);
     reportId = companyText(value, 'report_id');
     companies = companyItems(value, 'items', ObservedCompany.new);
+    populationScope = value.containsKey('population_scope')
+        ? companyText(value, 'population_scope') : 'incorporation';
+    if (!{'incorporation', 'incorporation_and_redomiciliation'}.contains(populationScope)) {
+      throw const FormatException('Invalid company list population scope');
+    }
     nextCursor = value['next_cursor'] as String?;
   }
-  late final String reportId;
+  late final String reportId, populationScope;
+  bool get includesRedomiciliation => populationScope == 'incorporation_and_redomiciliation';
   late final String? nextCursor;
   late final List<ObservedCompany> companies;
 }

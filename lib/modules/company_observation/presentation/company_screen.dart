@@ -107,8 +107,12 @@ class CompanyOverviewContent extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       CompanyPanel(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         CompanyStatus(status: data.period.dataStatus), const SizedBox(height: 12),
-        Text(complete ? copy.total(data.totalCount!) : copy.observed(data.observedCount),
+        Text(complete ? copy.total(data.totalCount!,
+          includesRedomiciliation: data.period.includesRedomiciliation) : copy.observed(data.observedCount),
           style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w700, height: 1.4)),
+        const SizedBox(height: 12),
+        Text(data.period.includesRedomiciliation ? copy.populationNotice : copy.legacyPopulationNotice,
+          style: const TextStyle(fontSize: 13, height: 1.5)),
         if (!complete) ...[const SizedBox(height: 12),
           Text(data.missing.contains('incorporation_or_redomiciliation') ? copy.combinedDate : copy.partial)],
         if (data.sources.isNotEmpty) ...[const SizedBox(height: 12),
